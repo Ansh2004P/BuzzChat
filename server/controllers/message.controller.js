@@ -1,0 +1,239 @@
+import { asyncHandler } from "../utils/asyncHandler.js"
+import { Message } from "../model/message.model.js"
+import { User } from "../model/user.model.js"
+import mongoose from "mongoose"
+import { Chat } from "../model/chat.model.js"
+import { ApiError } from "../utils/ApiError.js"
+import { ApiResponse } from "../utils/ApiResponse.js"
+import {
+    getLocalPath,
+    getStaticFilePath,
+    removeLocalFile,
+} from "../utils/helpers.js"
+import { emitSocketEvent } from "../socket/index.js"
+import { ChatEventEnum } from "../constant.js"
+
+const chatMessageCommonAggregation = () => {
+    return [
+        {
+            $lookup: {
+                from: "users",
+                localField: "sender",
+                foreignField: "_id",
+                as: "sender",
+                pipeline: [
+                    {
+                        $project: {
+                            username: 1,
+                            avatar: 1,
+                            email: 1,
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $addFields: {
+                sender: {
+                    $first: "$sender",
+                },
+            },
+        },
+    ]
+}
+
+const getAllMessages = asyncHandler(async (req, res) => {
+    const { chatId } = req.params
+
+    const selectedChat = await Chat.findById(chatId)
+
+    if (!selectedChat) {
+        throw new ApiError(404, "Chat not found")
+    }
+
+    // Only send messages if the logged in user is a part of the chat he is requesting messages of
+    if (!selectedChat.participants?.includes(req.user?._id)) {
+        throw new ApiError(400, "You are not a part of this chat")
+    }
+
+    const messages = await Message.aggregate([
+        {
+            $match: {
+                chat: mongoose.Types.ObjectId(chatId),
+            },
+        },
+        ...chatMessageCommonAggregation(),
+        {
+            $sort: {
+                createdAt: -1,
+            },
+        },
+    ])
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                messages || [],
+                "Messages fetched successfully"
+            )
+        )
+})
+
+const sendMessage = asyncHandler(async (req, res) => {
+    const { chatId } = req.params
+    const { content } = req.body
+
+    if (!content && !req.files?.attachment.length) {
+        throw new ApiError(400, "Message content or attachment is required")
+    }
+
+    const selectedChat = await Chat.findById(chatId)
+
+    if (!selectedChat) {
+        throw new ApiError(404, "Chat not found")
+    }
+
+    const messageFiles = []
+
+    if (req.files && req.files.attachment?.length > 0) {
+        req.files.attachment?.map((fle) => {
+            messageFiles.push({
+                url: getStaticFilePath(req, fle.filename),
+                localPath: getLocalPath(fle.filename),
+            })
+        })
+    }
+
+    // Create a new message instance with appropriate metadata
+    const message = await Message.create({
+        sender: mongoose.Types.ObjectId(req.user?._id),
+        content: content || "",
+        chat: mongoose.Types.ObjectId(chatId),
+        attachment: messageFiles,
+    })
+
+    // update the chat's last message
+    const chat = await Chat.findByIdAndUpdate(
+        chatId,
+        {
+            $set: {
+                lastMessage: message._id,
+            },
+        },
+        { new: true }
+    )
+
+    // Structure the message
+    const messages = await Message.aggregate([
+        {
+            $match: {
+                _id: mongoose.Types.ObjectId(message._id),
+            },
+        },
+        ...chatMessageCommonAggregation(),
+    ])
+
+    const receivedMessage = messages[0]
+
+    if (!receivedMessage) {
+        throw new ApiError(500, "Error while sending message")
+    }
+
+    // logic to emit socket event about the new message created to other participants
+    chat.participants.forEach((participantObjectId) => {
+        // avoid emitting event to user who is sending the message
+        if (participantObjectId.toString() === req.user._id.toString()) return
+
+        // emit the receive message event to the other participants with received message as the payload
+        emitSocketEvent(
+            req,
+            participantObjectId.toString(),
+            ChatEventEnum.MESSAGE_RECEIVED_EVENT,
+            receivedMessage
+        )
+    })
+
+    return res
+        .status(201)
+        .json(
+            new ApiResponse(201, receivedMessage, "Message sent successfully")
+        )
+})
+
+const deleteMessage = asyncHandler(async (req, res) => {
+    const { chatId, messageId } = req.params
+
+    const chat = await Chat.findOne({
+        _id: chatId,
+        participants: req.user._id,
+    })
+
+    if (!chat) {
+        throw new ApiError(404, "Chat not found")
+    }
+
+    // Find the message to be deleted based on message id
+    const message = await Message.findOne({
+        _id: mongoose.Types.ObjectId(messageId),
+    })
+
+    if (!message) {
+        throw new ApiError(404, "Message not found")
+    }
+
+    //Check if user is the sender of the message
+    if (message.sender.toString() !== req.user._id.toString()) {
+        throw new ApiError(403, "You are not the sender of this message")
+    }
+
+    if (message.attachment.length > 0) {
+        // If the message is attachment, remove the attachments from the server
+        message.attachments.map((asset) => {
+            removeLocalFile(asset.localPath)
+        })
+    }
+
+    // Delete the message from the database
+    await Message.deleteOne({
+        _id: mongoose.Types.ObjectId(messageId),
+    })
+
+    //Updating the last message of the chat to the previous message after deletion if the message deleted was last message
+    if (chat.lastMessage.toString() === messageId._id.toString()) {
+        const lastMessage = await Message.findOne(
+            {
+                chat: chatId,
+            },
+            {},
+            {
+                sort: { createdAt: -1 },
+            }
+        )
+
+        await Chat.findByIdAndUpdate(chatId, {
+            lastMessage: lastMessage ? lastMessage?._id : null,
+        })
+    }
+
+    // logic to emit socket event about the message deleted  to the other participants
+    chat.participants.forEach((participantObjectId) => {
+        // avoid emitting event to the user who is deleting the message
+        if (participantObjectId.toString() === req.user._id.toString()) return
+
+        // emit the delete message event to the other participants frontend with delete messageId as the payload
+        emitSocketEvent(
+            req,
+            participantObjectId.toString(),
+            ChatEventEnum.MESSAGE_DELETE_EVENT,
+            message
+        )
+    })
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, message, "Message deleted successfully"))
+})
+
+export { getAllMessages, sendMessage, deleteMessage }
