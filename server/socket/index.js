@@ -3,11 +3,11 @@ import jwt from "jsonwebtoken"
 import { User } from "../model/user.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { Server, Socket } from "socket.io"
-import { ChatEventEnum } from ".././constant.js"
+import { ChatEventEnum } from "../constant.js"
 
 /**
  * @description This function is responsible to allow user to join the chat represented by chatId (chatId). event happens when user switches between the chats
- * @param {Socket<import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, any>} socket
+ * @param {Socket} socket
  */
 const mountJoinChatEvent = (socket) => {
     socket.on(ChatEventEnum.JOIN_CHAT_EVENT, (chatId) => {
@@ -18,7 +18,7 @@ const mountJoinChatEvent = (socket) => {
 
 /**
  * @description This function is responsible to emit the typing event to the other participants of the chat
- * @param {Socket<import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, any>} socket
+ * @param {Socket} socket
  */
 const mountParticipantTypingEvent = (socket) => {
     socket.on(ChatEventEnum.TYPING_EVENT, (chatId) => {
@@ -28,7 +28,7 @@ const mountParticipantTypingEvent = (socket) => {
 
 /**
  * @description This function is responsible to emit the stopped typing event to the other participants of the chat
- * @param {Socket<import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, any>} socket
+ * @param {Socket} socket
  */
 const mountParticipantStoppedTypingEvent = (socket) => {
     socket.on(ChatEventEnum.STOP_TYPING_EVENT, (chatId) => {
@@ -37,14 +37,43 @@ const mountParticipantStoppedTypingEvent = (socket) => {
 }
 
 /**
+ * @description This function is responsible to handle WebRTC signaling events
+ * @param {Socket} socket
+ */
+const mountWebRTCEvents = (socket) => {
+    socket.on(ChatEventEnum.WEBRTC_OFFER, (data) => {
+        const { chatId, offer } = data
+        socket
+            .to(chatId)
+            .emit(ChatEventEnum.WEBRTC_OFFER, { from: socket.user._id, offer })
+    })
+
+    socket.on(ChatEventEnum.WEBRTC_ANSWER, (data) => {
+        const { chatId, answer } = data
+        socket.to(chatId).emit(ChatEventEnum.WEBRTC_ANSWER, {
+            from: socket.user._id,
+            answer,
+        })
+    })
+
+    socket.on(ChatEventEnum.WEBRTC_ICE_CANDIDATE, (data) => {
+        const { chatId, candidate } = data
+        socket.to(chatId).emit(ChatEventEnum.WEBRTC_ICE_CANDIDATE, {
+            from: socket.user._id,
+            candidate,
+        })
+    })
+}
+
+/**
  * @description This function is responsible for initializing the socket connection
- * @param {Server<import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, import("socket.io/dist/typed-events").DefaultEventsMap, any>} io
+ * @param {Server} io
  */
 const initializeSocketIO = (io) => {
     return io.on("connection", async (socket) => {
         try {
-            const cookies = cookie.parse(socket.handshake.headers?.cookie || "")
-            const token = cookies?.accessToken
+            let cookies = cookie.parse(socket.handshake.headers?.cookie || "")
+            let token = cookies?.accessToken
 
             if (!token) {
                 token = socket.handshake.auth?.token
@@ -65,23 +94,22 @@ const initializeSocketIO = (io) => {
                 "-password -refreshToken"
             )
 
-            //retrieve the user from the token
             if (!user) {
                 throw new ApiError(
                     401,
                     "Unauthorized handShake, user not found"
                 )
             }
-            socket.user = user
 
+            socket.user = user
             socket.join(user._id.toString())
             socket.emit(ChatEventEnum.CONNECTED_EVENT)
             console.log("User connected 🚀", user.username)
 
-            // Common events that needs to be mounted on the initialization
             mountJoinChatEvent(socket)
             mountParticipantTypingEvent(socket)
             mountParticipantStoppedTypingEvent(socket)
+            mountWebRTCEvents(socket)
 
             socket.on(ChatEventEnum.DISCONNECT_EVENT, () => {
                 console.log(
@@ -102,7 +130,6 @@ const initializeSocketIO = (io) => {
 }
 
 /**
- *
  * @param {import("express").Request} req - Request object to access the `io` instance set at the entry point
  * @param {string} roomId - Room where the event should be emitted
  * @param {AvailableChatEvents[0]} event - Event that should be emitted
