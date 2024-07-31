@@ -7,16 +7,18 @@ import {
     getAllMessages,
     sendMessage,
 } from "../controllers/message.controller.js"
+import { uploadAttachment } from "../middlewares/multer.middleware.js"
 
 const router = Router()
 
 router.use(verifyJWT)
 
 // route to get all messages of a chat and to send a message to a chat
-router("/:chatId")
+router
+    .route("/:chatId")
     .get(mongoIdPathVariableValidator("chatId"), validate, getAllMessages)
     .post(
-        upload.fields([{ name: "attachment", maxCount: 5 }]),
+        uploadAttachment.fields([{ name: "attachment", maxCount: 5 }]),
         mongoIdPathVariableValidator("chatId"),
         validate,
         sendMessage

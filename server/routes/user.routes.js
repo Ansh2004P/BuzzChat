@@ -20,10 +20,10 @@ router.route("/").get((_, res) => {
     res.send("User Route")
 })
 
-router
-    .route("/")
-    .post(uploadAvatar.single("avatar"), registerUser)
-    .get(verifyJWT, getAllUsers)
+router.route("/register").post(uploadAvatar.single("avatar"), registerUser)
+
+router.route("/get-users").get(verifyJWT, getAllUsers)
+
 router.route("/login").post(loginUser)
 
 //secured Routes

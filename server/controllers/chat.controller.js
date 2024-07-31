@@ -1,8 +1,8 @@
-import asyncHandler from "../utils/asyncHandler.js"
+import {asyncHandler} from "../utils/asyncHandler.js"
 import { Chat } from "../model/chat.model.js"
 import { User } from "../model/user.model.js"
 import { Message } from "../model/message.model.js"
-import ApiError from "../utils/ApiError.js"
+import {ApiError} from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import mongoose from "mongoose"
 

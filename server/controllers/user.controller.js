@@ -1,8 +1,8 @@
 import { User } from "../model/user.model.js"
-import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import fs from "fs"
+import { ApiError } from "../utils/ApiError.js"
 import {
     deleteFromCloudinary,
     uploadOnCloudinary,
@@ -50,8 +50,7 @@ const registerUser = asyncHandler(async (req, res) => {
     if (req.file) {
         avatarLocalPath = req.file.path
     } else {
-        avatarLocalPath =
-            "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"
+        avatarLocalPath = ""
     }
 
     const existedUser = await User.findOne({
@@ -59,14 +58,16 @@ const registerUser = asyncHandler(async (req, res) => {
     })
 
     if (existedUser) {
-        fs.unlinkSync(avatarLocalPath)
+        if (avatarLocalPath.trim() !== "") fs.unlinkSync(avatarLocalPath)
+        res.status(400)
         throw new ApiError(409, "User already exists")
     }
 
     const avatar = await uploadOnCloudinary(avatarLocalPath)
 
     if (!avatar) {
-        throw new ApiError(500, "Something went wrong while uploading avatar")
+        res.status(400)
+        throw new ApiError("Something went wrong while uploading avatar")
     }
 
     const user = await User.create({
@@ -76,27 +77,17 @@ const registerUser = asyncHandler(async (req, res) => {
         password,
     })
 
-    const options = {
-        httpOnly: true,
-        secure: true,
-    }
-
-    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
-        user._id
-    )
-
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
     )
 
     if (!createdUser) {
-        throw new ApiError(500, "Something went wrong while creating user")
+        res.status(400)
+        throw new ApiError("Something went wrong while creating user")
     }
 
     return res
         .status(201)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
         .json(new ApiResponse(200, createdUser, "User created successfully"))
 })
 
@@ -209,8 +200,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
                     "Access token refreshed successfully"
                 )
             )
-    } catch (error) {
-        throw new ApiError(500, error?.message || "Invalid refresh token")
+    } catch (ApiError) {
+        throw new ApiError(500, ApiError?.message || "Invalid refresh token")
     }
 })
 
@@ -394,8 +385,8 @@ const getAllUsers = async (req, res) => {
         return res
             .status(200)
             .json(new ApiResponse(200, users, "All users fetched successfully"))
-    } catch (error) {
-        return res.status(500).json(new ApiError(500, error.message))
+    } catch (ApiError) {
+        return res.status(500).json(new ApiError(500, ApiError.message))
     }
 }
 

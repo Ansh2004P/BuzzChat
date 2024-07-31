@@ -5,6 +5,7 @@ import {
     addParticipant,
     createGroupChat,
     fetchChats,
+    leaveGroupChat,
     removeFromGroup,
     renameGroup,
 } from "../controllers/chat.controller.js"
@@ -21,5 +22,6 @@ router.route("/group").post(createGroupChat)
 router.route("/rename").put(renameGroup)
 router.route("/groupRemove").put(removeFromGroup)
 router.route("/groupAdd").put(addParticipant)
+router.route(`/leaveGroup/:chatId`).put(leaveGroupChat)
 
 export default router
