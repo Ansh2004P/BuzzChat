@@ -49,10 +49,6 @@ const Signup = () => {
         formData.append("avatar", avatar);
       }
 
-      // formData.forEach((value, key) => {
-      //   console.log(key, value);
-      // });
-
       await register(formData);
     } catch (error) {
       console.error("Error in handleButtonClick:", error);

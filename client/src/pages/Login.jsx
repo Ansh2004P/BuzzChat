@@ -2,9 +2,12 @@
 import { useRef, useState } from "react";
 import { checkValidData } from "../utils/validate";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const name = useRef(null);
   const email = useRef(null);
@@ -12,15 +15,40 @@ const Login = () => {
 
   const [errorMessage, setErrorMessage] = useState(null);
 
-  const handleButtonClick = () => {
-    if (!name.current.value && !email.current.value) {
-      setErrorMessage("Both name and email cannot be empty");
-      return;
-    }
+  const handleButtonClick = async () => {
+    try {
+      if (!name.current.value && !email.current.value) {
+        setErrorMessage("Both name and email cannot be empty");
+        return;
+      }
 
-    const check = checkValidData(email.current.value, password.current.value);
-    setErrorMessage(check);
-    if (check) return;
+      const check = checkValidData(email.current.value, password.current.value);
+      setErrorMessage(check);
+      if (check) return;
+
+      const formData = new FormData();
+      formData.append("username", name.current.value);
+      formData.append("email", email.current.value);
+      formData.append("password", password.current.value);
+
+      // formData.forEach((value, key) => {
+      //   console.log(key, value);
+      // });
+
+      await login(formData);
+      
+    } catch (error) {
+      toast.error("Error in handleButtonClick", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    }
   };
 
   return (

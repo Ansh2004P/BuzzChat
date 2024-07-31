@@ -25,7 +25,7 @@ const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   // Login function
-  const login = async ({ data }) => {
+  const login = async (data) => {
     await requestHandler(
       async () => await loginUser(data),
       setIsLoading,
@@ -35,7 +35,7 @@ const AuthProvider = ({ children }) => {
         setToken(data.accessToken);
         LocalStorage.set("user", data.user);
         LocalStorage.set("token", data.accessToken);
-        navigate("/chat");
+        navigate("/chats");
       },
       alert
     );

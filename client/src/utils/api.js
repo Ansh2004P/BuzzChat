@@ -27,7 +27,9 @@ apiClient.interceptors.request.use(
 );
 
 const loginUser = (data) => {
-  return apiClient.post("/user/login", data);
+  return apiClient.post("/user/login", data, {
+    headers: { "Content-Type": "application/json" },
+  });
 };
 
 const registerUser = async (data) => {
