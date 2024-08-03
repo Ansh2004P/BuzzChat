@@ -1,8 +1,10 @@
 import { useRef, useState } from "react";
 import { checkValidData } from "../utils/validate";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { Bounce, toast } from "react-toastify";
+import axios from "axios";
+import Loader from "../components/Loader";
+import { extractErrorMessage } from "../utils/utils";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -14,19 +16,23 @@ const Signup = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [avatar, setAvatar] = useState(null);
   const [previewAvatar, setPreviewAvatar] = useState(null);
-
-  const { register } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const handleButtonClick = async () => {
+    setLoading(true);
     try {
       if (!name.current.value || !email.current.value) {
         setErrorMessage("Both name and email cannot be empty");
+        setLoading(false);
         return;
       }
 
       const check = checkValidData(email.current.value, password.current.value);
       setErrorMessage(check);
-      if (check) return;
+      if (check) {
+        setLoading(false);
+        return;
+      }
 
       if (!avatar)
         return toast.error("Please select avatar", {
@@ -49,9 +55,39 @@ const Signup = () => {
         formData.append("avatar", avatar);
       }
 
-      await register(formData);
+      const config = {
+        headers: { "Content-Type": "multipart/form-data" },
+      };
+
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_SERVER_URI}/user/register`,
+        formData,
+        config
+      );
+      console.log(data);
+      toast({
+        title: data.message,
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+
+      setLoading(false);
+      navigate("/login");
     } catch (error) {
-      console.error("Error in handleButtonClick:", error);
+      setLoading(false);
+      console.log(error);
+      const errorMessage = extractErrorMessage(error.response.data);
+      toast.error(errorMessage, {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "dark",
+      });
     }
   };
 
@@ -67,10 +103,12 @@ const Signup = () => {
   };
 
   return (
+    // <Loader />
+    // ) : (
     <div className="w-full h-full bg-stone-950 bg-opacity-95 absolute flex justify-center items-center text-white">
       <div className="p-4 my-10 w-[40%] h-fit bg-stone-800 bg-opacity-70 rounded-2xl flex flex-col justify-evenly backdrop-blur-lg shadow-lg shadow-black">
         <h1 className="text-3xl font-sans font-bold text-center">Sign-Up</h1>
-        <div className="flex justify-center my-4">
+        <div className="flex justify-center my-4 ">
           <label
             htmlFor="avatar-input"
             className="cursor-pointer relative w-28 h-28 rounded-full overflow-hidden border-4 border-gray-700"
@@ -121,12 +159,11 @@ const Signup = () => {
           />
           <p className="text-red-500 font-bold text-lg py-2">{errorMessage}</p>
           <button
-            type="submit"
-            className="p-4 my-4 bg-emerald-700 text-white w-full rounded-lg cursor-pointer"
             onClick={handleButtonClick}
-            
+            disabled={loading}
+            className="p-4 my-4 bg-emerald-700 text-white w-full rounded-lg cursor-pointer"
           >
-            Signup
+            {loading ? "Loading..." : "Sign-Up"}
           </button>
         </form>
         <div className="flex">

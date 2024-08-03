@@ -1,44 +1,57 @@
 /* eslint-disable react/no-unescaped-entities */
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { checkValidData } from "../utils/validate";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import axios from "axios";
+import { setUser } from "../utils/redux/userSlice";
+import { extractErrorMessage } from "../utils/utils";
 
 const Login = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { login } = useAuth();
+
+  const [errorMessage, setErrorMessage] = useState("");
 
   const name = useRef(null);
   const email = useRef(null);
   const password = useRef(null);
 
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleButtonClick = async () => {
+    setLoading(true);
     try {
       if (!name.current.value && !email.current.value) {
+        setLoading(false);
         setErrorMessage("Both name and email cannot be empty");
         return;
       }
 
       const check = checkValidData(email.current.value, password.current.value);
       setErrorMessage(check);
-      if (check) return;
+      if (check) {
+        setLoading(false);
+        return;
+      }
 
       const formData = new FormData();
       formData.append("username", name.current.value);
       formData.append("email", email.current.value);
       formData.append("password", password.current.value);
 
-      // formData.forEach((value, key) => {
-      //   console.log(key, value);
-      // });
+      const config = {
+        headers: { "Content-Type": "application/json" },
+      };
 
-      await login(formData);
-      
-    } catch (error) {
-      toast.error("Error in handleButtonClick", {
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_SERVER_URI}/user/login`,
+        formData,
+        config
+      );
+
+      toast.success("Login successful", {
         position: "bottom-center",
         autoClose: 5000,
         hideProgressBar: false,
@@ -46,6 +59,27 @@ const Login = () => {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
+        theme: "dark",
+      });
+
+      localStorage.setItem("userInfo", JSON.stringify(data));
+      setLoading(false);
+
+      const userInfo = JSON.stringify(data.data);
+
+      dispatch(setUser({ userInfo }));
+
+      navigate("/chats");
+    } catch (error) {
+      setLoading(false);
+      const errorMessage = extractErrorMessage(error.response.data);
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
         theme: "dark",
       });
     }
@@ -77,10 +111,11 @@ const Login = () => {
           />
           <p className="text-red-500 font-bold text-lg py-2">{errorMessage}</p>
           <button
-            className="p-4 my-2 bg-emerald-700 text-white w-full rounded-lg cursor-pointer"
             onClick={handleButtonClick}
+            disabled={loading}
+            className="p-4 my-4 bg-emerald-700 text-white w-full rounded-lg cursor-pointer"
           >
-            Login
+            {loading ? "Loading..." : "Login"}
           </button>
         </form>
         <div className="flex">
