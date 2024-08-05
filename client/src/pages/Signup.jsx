@@ -103,8 +103,6 @@ const Signup = () => {
   };
 
   return (
-    // <Loader />
-    // ) : (
     <div className="w-full h-full bg-stone-950 bg-opacity-95 absolute flex justify-center items-center text-white">
       <div className="p-4 my-10 w-[40%] h-fit bg-stone-800 bg-opacity-70 rounded-2xl flex flex-col justify-evenly backdrop-blur-lg shadow-lg shadow-black">
         <h1 className="text-3xl font-sans font-bold text-center">Sign-Up</h1>

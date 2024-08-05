@@ -65,9 +65,9 @@ const Login = () => {
       localStorage.setItem("userInfo", JSON.stringify(data));
       setLoading(false);
 
-      const userInfo = JSON.stringify(data.data);
-
-      dispatch(setUser({ userInfo }));
+      const userInfo = data.data;
+      // console.log( userInfo );
+      dispatch(setUser( userInfo ));
 
       navigate("/chats");
     } catch (error) {
