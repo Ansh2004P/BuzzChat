@@ -1,7 +1,7 @@
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
-import DropdownMenu from "./DropdownMenu";
+import DropdownMenu from "./userProfile/DropdownMenu";
 
 const lst = [
   {

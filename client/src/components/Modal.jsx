@@ -3,14 +3,14 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
-import AvatarSelector from "./AvatarSelector";
-import { CrossButton } from "./CrossButton";
+import AvatarSelector from "./userProfile/AvatarSelector";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { extractErrorMessage } from "../utils/utils";
-import UpdateName from "./UpdateName";
-import DeleteUser from "./DeleteUser";
+import UpdateName from "./userProfile/UpdateName";
+import DeleteUser from "./userProfile/DeleteUser";
 import Logout from "./Logout";
+import { CrossButton } from "./userProfile/CrossButton";
 
 const Modal = ({ onClose }) => {
   const currentUser = useSelector((state) => state.user.user);
@@ -85,7 +85,7 @@ const Modal = ({ onClose }) => {
           </span>
         </div>
         <UpdateName />
-        <hr className="my-4"/>
+        <hr className="my-4" />
         <DeleteUser />
         <hr />
         <Logout />

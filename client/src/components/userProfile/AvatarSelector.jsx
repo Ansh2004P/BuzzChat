@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { extractErrorMessage } from "../utils/utils";
+import { extractErrorMessage } from "../../utils/utils";
 
 const AvatarSelector = ({ photu, onAvatarChange }) => {
   const [avatar, setAvatar] = useState(null);

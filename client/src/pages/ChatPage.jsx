@@ -2,7 +2,6 @@
 import img1 from "../assets/images/logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell } from "@fortawesome/free-solid-svg-icons";
-import UserAvatar from "../components/UserAvatar";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { setUser } from "../utils/redux/userSlice";
@@ -11,6 +10,7 @@ import NotificationBell from "../components/NotificationBell";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { extractErrorMessage } from "../utils/utils";
+import UserAvatar from "../components/userProfile/UserAvatar";
 
 const ChatPage = () => {
   const dispatch = useDispatch();

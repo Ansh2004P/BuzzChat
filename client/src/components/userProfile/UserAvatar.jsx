@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import DropdownMenu from "./DropdownMenu";
-import Modal from "./Modal";
+import  Modal  from "../Modal";
 import PropTypes from "prop-types";
 
 const menuItems = [
