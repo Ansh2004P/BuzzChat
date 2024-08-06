@@ -44,7 +44,7 @@ const ChatPage = () => {
         theme: "dark",
       });
     }
-  }, [dispatch]); // Ensures useEffect runs only on mount
+  }, []); // Ensures useEffect runs only on mount
 
   // Conditional rendering to wait for user data
   if (!user) {

@@ -55,6 +55,11 @@ const Modal = ({ onClose }) => {
   };
   // console.log(selectedAvatar);
 
+  const handleClose = () => {
+    // Refresh the page
+    window.location.reload();
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       {/* Overlay */}
@@ -66,7 +71,7 @@ const Modal = ({ onClose }) => {
         // Add onClick event handler to stop propagation
         onClick={(e) => e.stopPropagation()}
       >
-        <CrossButton onClick={onClose} />
+        <CrossButton onClick={handleClose} />
         <h2 className="text-2xl font-bold mb-4 font-serif">Profile</h2>
         <hr />
         <div className="w-fit flex justify-around space-y-2">
