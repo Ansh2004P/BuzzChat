@@ -23,7 +23,7 @@ const AvatarSelector = ({ photu, onAvatarChange }) => {
       setLoading(true);
 
       const formData = new FormData();
-      formData.append("avatar", avatar);
+      formData.append("avatar", file); // Use 'file' here
 
       const config = {
         headers: { "Content-type": "multipart/form-data" },
@@ -31,20 +31,22 @@ const AvatarSelector = ({ photu, onAvatarChange }) => {
       };
 
       try {
-        const { data } = await axios.patch(
+        const response = await axios.patch(
           `${import.meta.env.VITE_SERVER_URI}/user/update-avatar`,
           formData,
           config
         );
-
+        console.log(response);
         setLoading(false);
 
-        toast({
-          title: data.message,
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-          position: "bottom",
+        toast.success(response.data.message, {
+          position: "bottom-center",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          theme: "dark",
         });
       } catch (error) {
         setLoading(false);
