@@ -43,6 +43,7 @@ const Login = () => {
 
       const config = {
         headers: { "Content-Type": "application/json" },
+        withCredentials: true,
       };
 
       const { data } = await axios.post(
@@ -56,18 +57,19 @@ const Login = () => {
         autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: true,
+        pauseOnHover: false,
         draggable: true,
         progress: undefined,
         theme: "dark",
       });
 
       localStorage.setItem("userInfo", JSON.stringify(data));
+
       setLoading(false);
 
       const userInfo = data.data;
       // console.log( userInfo );
-      dispatch(setUser( userInfo ));
+      dispatch(setUser(userInfo));
 
       navigate("/chats");
     } catch (error) {
@@ -78,7 +80,7 @@ const Login = () => {
         autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: true,
+        pauseOnHover: false,
         draggable: true,
         theme: "dark",
       });

@@ -9,3 +9,4 @@ export const extractErrorMessage = (html) => {
   // Return the error message if found, otherwise return null
   return match ? match[1] : null;
 };
+

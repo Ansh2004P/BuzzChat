@@ -8,21 +8,41 @@ import { useEffect } from "react";
 import { setUser } from "../utils/redux/userSlice";
 import Loading from "../assets/images/Ellipsis@1x-1.8s-200px-200px";
 import NotificationBell from "../components/NotificationBell";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { extractErrorMessage } from "../utils/utils";
 
 const ChatPage = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.user);
 
-  useEffect(() => {
-    const userData = localStorage.getItem("userInfo");
-    if (userData) {
-      try {
-        const parsedUserData = JSON.parse(userData);
-        // console.log(parsedUserData); // Check the parsed user data
-        dispatch(setUser(parsedUserData.data));
-      } catch (error) {
-        console.error("Error parsing userData from localStorage:", error);
+  const getCurrentUser = async () => {
+    const response = await axios.get(
+      `${import.meta.env.VITE_SERVER_URI}/user/current-user`,
+      {
+        withCredentials: true,
       }
+    );
+    // console.log(response.data.data);
+    dispatch(setUser(response.data.data));
+  };
+  // console.log(user.avatar);
+
+  useEffect(() => {
+    try {
+      getCurrentUser();
+    } catch (error) {
+      const errorMessage = extractErrorMessage(error.response.data);
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+
+        draggable: true,
+        theme: "dark",
+      });
     }
   }, [dispatch]); // Ensures useEffect runs only on mount
 

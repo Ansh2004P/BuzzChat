@@ -40,7 +40,7 @@ const Signup = () => {
           autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
-          pauseOnHover: true,
+          pauseOnHover: false,
           draggable: true,
           progress: undefined,
           theme: "dark",
@@ -64,7 +64,7 @@ const Signup = () => {
         formData,
         config
       );
-      console.log(data);
+      // console.log(data);
       toast({
         title: data.message,
         status: "success",
@@ -77,14 +77,14 @@ const Signup = () => {
       navigate("/login");
     } catch (error) {
       setLoading(false);
-      console.log(error);
+      // console.log(error);
       const errorMessage = extractErrorMessage(error.response.data);
       toast.error(errorMessage, {
         position: "bottom-center",
         autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
-        pauseOnHover: true,
+        pauseOnHover: false,
         draggable: true,
         theme: "dark",
       });

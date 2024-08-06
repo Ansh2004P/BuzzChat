@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 
 const DropdownMenu = ({ children, menuItems, renderItem }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -29,6 +29,12 @@ const DropdownMenu = ({ children, menuItems, renderItem }) => {
       )}
     </div>
   );
+};
+
+DropdownMenu.propTypes = {
+  children: PropTypes.node.isRequired,
+  menuItems: PropTypes.arrayOf(PropTypes.object).isRequired,
+  renderItem: PropTypes.func.isRequired,
 };
 
 export default DropdownMenu;
