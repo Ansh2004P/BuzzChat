@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import DropdownMenu from "./DropdownMenu";
-import  Modal  from "../Modal";
+import Modal from "../Modal";
 import PropTypes from "prop-types";
+import useLogoutHook from "../../hooks/useLogoutHook";
 
 const menuItems = [
   { label: "Profile", href: "#", action: "profile" },
@@ -12,17 +13,23 @@ const menuItems = [
 
 const UserAvatar = ({ avatar }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { handleSubmit, loading } = useLogoutHook();
 
   const handleMenuItemClick = (item) => {
     if (item.action === "profile") {
       setIsModalOpen(true);
+    }
+    if (item.label === "Logout") {
+      handleSubmit();
     }
   };
 
   const renderMenuItem = (item) => (
     <a
       href={item.href}
-      className="text-white hover:bg-neutral-700 block px-4 py-2"
+      className={`text-white hover:bg-neutral-700 block px-4 py-2 ${
+        item.label === "Logout" && "hover:bg-red-500"
+      }`}
       onClick={(e) => {
         e.preventDefault();
         handleMenuItemClick(item);
@@ -40,7 +47,7 @@ const UserAvatar = ({ avatar }) => {
             <img
               src={avatar}
               alt="avatar"
-              className="rounded-full w-[50px] h-[50px]"
+              className="rounded-full w-full h-full object-cover"
             />
           </div>
           <FontAwesomeIcon

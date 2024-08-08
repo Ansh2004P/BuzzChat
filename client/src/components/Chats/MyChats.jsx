@@ -5,6 +5,7 @@ import ChatList from "./ChatList";
 import useChatState from "../../hooks/useChatState";
 import useFetchChat from "../../hooks/useFetchChats";
 import useSearchUser from "../../hooks/useSearchUser";
+import Heading from "./Heading";
 
 const MyChats = () => {
   const searchUser = useRef("");
@@ -25,15 +26,7 @@ const MyChats = () => {
 
   return (
     <div className="bg-neutral-800 rounded-2xl w-[30%] h-[100%] p-2 mx-4 text-white flex flex-col ">
-      <span className="flex justify-between w-full p-2">
-        <h1 className="font-serif font-semibold text-3xl ml-2 mt-1">Chats</h1>
-        <button
-          className="p-2 mr-4 mt-1 bg-emerald-700 hover:bg-emerald-800 rounded-xl"
-          onClick={() => {}}
-        >
-          Create Group
-        </button>
-      </span>
+      <Heading />
       <input
         ref={searchUser}
         type="search"
@@ -42,7 +35,9 @@ const MyChats = () => {
         onKeyDown={handleSearch}
         onInput={handleInputChange}
       ></input>
+    
       <hr className="h-px mt-2 bg-gray-200 border-0 dark:bg-gray-700" />
+      
       {searchResult.length === 0 ? (
         <ChatList chats={chats} />
       ) : (

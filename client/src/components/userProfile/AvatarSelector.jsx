@@ -74,17 +74,19 @@ const AvatarSelector = ({ photu, onAvatarChange }) => {
           <img
             src={previewAvatar}
             alt="Avatar"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover rounded-full"
           />
         ) : (
-          <div className="w-full h-full bg-gray-500 flex justify-center items-center">
+          <div className="w-full h-full bg-gray-500 flex justify-center items-center rounded-full">
             <img
               src={photu}
               alt="default image"
-              className="flex flex-grow w-full h-full"
+              className="w-full h-full object-cover rounded-full"
             />
+            /
           </div>
         )}
+
         <input
           id="avatar-input"
           type="file"
@@ -115,7 +117,7 @@ const AvatarSelector = ({ photu, onAvatarChange }) => {
 };
 
 AvatarSelector.propTypes = {
-  photu: PropTypes.string.isRequired,
+  photu: PropTypes.string,
   onAvatarChange: PropTypes.func.isRequired,
 };
 
