@@ -1,10 +1,10 @@
 // ChatPage.js
-import img1 from "../assets/images/logo.png";
+
 import Loading from "../assets/images/Ellipsis@1x-1.8s-200px-200px";
-import NotificationBell from "../components/NotificationBell";
-import UserAvatar from "../components/userProfile/UserAvatar";
 import MyChats from "../components/Chats/MyChats";
+import Heading from "../components/Heading";
 import useGetCurrentUser from "../hooks/useGetCurrentUser";
+import ChatIcon from "../utils/icons/ChatIcon";
 
 const ChatPage = () => {
   const { user } = useGetCurrentUser();
@@ -19,21 +19,21 @@ const ChatPage = () => {
 
   return (
     <div className="h-screen w-screen bg-black bg-opacity-90 flex flex-col">
-      <div className="flex w-full">
-        <div className="flex justify-start w-[50%] mt-5">
-          <img src={img1} alt="logo" className="w-14 h-14 ml-3" />
-          <span className="text-white text-2xl p-3 font-serif font-semibold">
-            BuzzChat
-          </span>
-        </div>
-        <div className="w-[50%] flex justify-end py-3 mr-5">
-          <NotificationBell />
-          <UserAvatar avatar={user.avatar} />
-        </div>
-      </div>
+      <Heading user={user} />
       <div className="flex justify-between w-full h-[82%]">
         <MyChats />
-        <div className="rounded-2xl w-[61%] h-[100%] flex flex-col justify-center"></div>
+        <div className="rounded-2xl mx-4 bg-neutral-800 w-[67%] h-[100%] flex flex-col justify-center">
+          <div className="flex flex-col items-center justify-center w-full h-full text-white p-6 rounded-lg">
+            <ChatIcon />
+            <span className="text-2xl text-neutral-600 md:text-3xl font-semibold text-center">
+              No Chat Selected
+            </span>
+            <p className="mt-4 text-lg text-center text-neutral-600">
+              Please select a chat from the list or start a new conversation to
+              begin chatting.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

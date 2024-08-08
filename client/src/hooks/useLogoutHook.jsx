@@ -20,7 +20,7 @@ const useLogoutHook = () => {
           withCredentials: true,
         }
       );
-      console.log(response);
+      // console.log(response);
       localStorage.removeItem("userInfo");
       dispatch(clearUser());
 

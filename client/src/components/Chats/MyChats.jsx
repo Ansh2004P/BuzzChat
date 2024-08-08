@@ -25,7 +25,7 @@ const MyChats = () => {
   };
 
   return (
-    <div className="bg-neutral-800 rounded-2xl w-[30%] h-[100%] p-2 mx-4 text-white flex flex-col ">
+    <div className="bg-neutral-800 rounded-2xl w-[30%] h-[100%] p-2 ml-4 text-white flex flex-col ">
       <Heading />
       <input
         ref={searchUser}
