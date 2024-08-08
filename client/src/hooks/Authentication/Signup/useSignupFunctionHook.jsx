@@ -1,8 +1,8 @@
 import React from "react";
 import { toast } from "react-toastify";
 import { Bounce } from "react-toastify";
-import checkValidData from "../../../utils/checkValidData";
-import extractErrorMessage from "../../../utils/extractErrorMessage";
+import { checkValidData } from "../../../utils/validate";
+import {extractErrorMessage} from "../../../utils/utils";
 import axios from "axios";
 
 const useSignupFunctionHook = ({
