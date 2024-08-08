@@ -342,53 +342,41 @@ const updateUsername = asyncHandler(async (req, res) => {
     })
 })
 
-const getAllUsers = async (req, res) => {
-    try {
-        // Sanitize the search query
-        const searchQuery = req.query.search ? req.query.search.trim() : ""
+const getAllUsers = asyncHandler(async (req, res) => {
+    const userId = req.user?._id
 
+    if (!userId) {
+        return res.status(400).json(new ApiError(400, "User ID is required"))
+    }
+
+    try {
         // Construct the match stage for the aggregate pipeline
-        const matchStage = {
-            $and: [
-                { _id: { $ne: req.user._id } }, // Exclude the current user
-                searchQuery
-                    ? {
-                          $or: [
-                              {
-                                  username: {
-                                      $regex: searchQuery,
-                                      $options: "i",
-                                  },
-                              },
-                              { email: { $regex: searchQuery, $options: "i" } },
-                          ],
-                      }
-                    : {},
-            ],
-        }
+        const matchStage = { _id: { $ne: userId } } // Exclude the current user
 
         // Build the aggregate pipeline
         const pipeline = [
             { $match: matchStage },
-            // You can add more stages here if needed, such as $sort, $limit, etc.
+            {
+                $project: {
+                    password: 0,
+                },
+            },
         ]
 
         // Execute the aggregate pipeline
         const users = await User.aggregate(pipeline)
 
-        // Check if users were found
         if (!users || users.length === 0) {
             return res.status(404).json(new ApiError(404, "No users found"))
         }
 
-        // Return the users in the response
         return res
             .status(200)
             .json(new ApiResponse(200, users, "All users fetched successfully"))
-    } catch (ApiError) {
-        return res.status(500).json(new ApiError(500, ApiError.message))
+    } catch (error) {
+        return res.status(500).json(new ApiError(500, error.message))
     }
-}
+})
 
 export {
     registerUser,

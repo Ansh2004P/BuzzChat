@@ -3,7 +3,7 @@ import img1 from "../assets/images/logo.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { setUser } from "../utils/redux/userSlice";
 import Loading from "../assets/images/Ellipsis@1x-1.8s-200px-200px";
 import NotificationBell from "../components/NotificationBell";
@@ -11,6 +11,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { extractErrorMessage } from "../utils/utils";
 import UserAvatar from "../components/userProfile/UserAvatar";
+import MyChats from "../components/Chats/MyChats";
 
 const ChatPage = () => {
   const dispatch = useDispatch();
@@ -71,7 +72,7 @@ const ChatPage = () => {
         </div>
       </div>
       <div className="flex justify-between w-full h-[82%]">
-        <div className="bg-neutral-800 rounded-2xl w-[30%] h-[100%] p-4 mx-4"></div>
+        <MyChats />
         <div className="rounded-2xl w-[61%] h-[100%] flex flex-col justify-center"></div>
       </div>
     </div>

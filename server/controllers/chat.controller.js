@@ -1,8 +1,8 @@
-import {asyncHandler} from "../utils/asyncHandler.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
 import { Chat } from "../model/chat.model.js"
 import { User } from "../model/user.model.js"
 import { Message } from "../model/message.model.js"
-import {ApiError} from "../utils/ApiError.js"
+import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import mongoose from "mongoose"
 
@@ -96,7 +96,7 @@ const accessChat = asyncHandler(async (req, res) => {
 const fetchChats = asyncHandler(async (req, res) => {
     const userId = req.user._id
 
-    if (!userId) throw new ApiError(400, "User ID is required")
+    if (!userId) throw new ApiError(400, "Unauthorized request")
 
     try {
         const chats = await Chat.aggregate([
@@ -163,11 +163,60 @@ const fetchChats = asyncHandler(async (req, res) => {
             },
         ])
 
-        return res.status.json(
-            new ApiResponse(200, chats, "Chats fetched successfully")
-        )
+        return res
+            .status(20)
+            .json(new ApiResponse(200, chats, "Chats fetched successfully"))
     } catch (error) {
         throw new ApiError(500, error.message || "Unable to fetch chats")
+    }
+})
+
+const getChat = asyncHandler(async (req, res) => {
+    const userId = req.user._id
+    try {
+        // Sanitize the search query
+        const searchQuery = req.query.search ? req.query.search.trim() : ""
+
+        // Construct the match stage for the aggregate pipeline
+        const matchStage = {
+            $and: [
+                { _id: { $ne: userId } }, // Exclude the current user
+                searchQuery
+                    ? {
+                          $or: [
+                              {
+                                  username: {
+                                      $regex: searchQuery,
+                                      $options: "i",
+                                  },
+                              },
+                              { email: { $regex: searchQuery, $options: "i" } },
+                          ],
+                      }
+                    : {},
+            ],
+        }
+
+        // Build the aggregate pipeline
+        const pipeline = [
+            { $match: matchStage },
+            // You can add more stages here if needed, such as $sort, $limit, etc.
+        ]
+
+        // Execute the aggregate pipeline
+        const users = await User.aggregate(pipeline)
+
+        // Check if users were found
+        if (!users || users.length === 0) {
+            throw new ApiError(404, "No users found")
+        }
+
+        // Return the users in the response
+        return res
+            .status(200)
+            .json(new ApiResponse(200, users, "All users fetched successfully"))
+    } catch (error) {
+        throw new ApiError(500, error.message || "Unable to fetch users")
     }
 })
 
@@ -505,4 +554,5 @@ export {
     removeFromGroup,
     renameGroup,
     leaveGroupChat,
+    getChat,
 }

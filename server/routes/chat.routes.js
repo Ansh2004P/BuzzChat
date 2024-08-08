@@ -5,6 +5,7 @@ import {
     addParticipant,
     createGroupChat,
     fetchChats,
+    getChat,
     leaveGroupChat,
     removeFromGroup,
     renameGroup,
@@ -18,6 +19,7 @@ router.route("/").get(fetchChats)
 
 router.route("/").post(accessChat)
 router.route("/group").post(createGroupChat)
+router.route("/search-user").get(getChat)
 
 router.route("/rename").put(renameGroup)
 router.route("/groupRemove").put(removeFromGroup)
