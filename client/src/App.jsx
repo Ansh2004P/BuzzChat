@@ -19,14 +19,7 @@ function App() {
       <div className="h-screen w-screen">
         <div>
           <Routes>
-            <Route
-              path="/"
-              element={
-                <RedirectIfAuthenticated>
-                  <LandingPage />
-                </RedirectIfAuthenticated>
-              }
-            />
+            <Route path="/" element={<LandingPage />} />
             <Route
               path="/chats"
               element={

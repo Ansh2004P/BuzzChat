@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose"
 
 const chatSchema = new Schema(
     {
-        name: {
+        chatName: {
             type: String,
             required: true,
         },

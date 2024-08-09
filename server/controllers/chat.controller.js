@@ -221,7 +221,7 @@ const getChat = asyncHandler(async (req, res) => {
 })
 
 const createGroupChat = asyncHandler(async (req, res) => {
-    if (!req.body.participants || !req.body.username) {
+    if (!req.body.participants || !req.body.groupName) {
         throw new ApiError(400, "Participants and group name are required")
     }
 
@@ -234,8 +234,10 @@ const createGroupChat = asyncHandler(async (req, res) => {
 
     try {
         const groupChat = await Chat.create({
-            chatName: req.body.username,
-            participants: users,
+            chatName: req.body.groupName,
+            participants: users.map((user) =>
+               new mongoose.Types.ObjectId(user._id)
+            ), // Convert to ObjectId
             isGroupChat: true,
             admin: [req.user],
         })
@@ -243,8 +245,8 @@ const createGroupChat = asyncHandler(async (req, res) => {
         const fullGroupChat = await Chat.findOne({
             _id: groupChat._id,
         })
-            .populate("participants", "-password", "-refreshToken")
-            .populate("admin", "-password", "-refreshToken")
+            .populate("participants", "-password -refreshToken")
+            .populate("admin", "-password -refreshToken")
 
         return res
             .status(200)

@@ -4,7 +4,7 @@ import { Scrollbars } from "react-custom-scrollbars";
 import useChatState from "../../hooks/useChatState";
 import PropTypes from "prop-types";
 
-const ChatList = ({ chats, loading, error }) => {
+const ChatList = React.memo(function ChatList({ chats }) {
   const { selectedChat, setSelectedChat, notification } = useChatState();
 
   // console.log(chats);
@@ -49,12 +49,10 @@ const ChatList = ({ chats, loading, error }) => {
       )}
     </div>
   );
-};
+});
 
 ChatList.propTypes = {
   chats: PropTypes.array.isRequired,
-  loading: PropTypes.bool,
-  error: PropTypes.string,
 };
 
 export default ChatList;

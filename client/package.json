@@ -18,6 +18,7 @@
     "@reduxjs/toolkit": "^2.2.7",
     "axios": "^1.7.2",
     "install": "^0.13.0",
+    "lodash": "^4.17.21",
     "lottie-web": "^5.12.2",
     "npm": "^10.8.2",
     "prop-types": "^15.8.1",
