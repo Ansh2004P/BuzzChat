@@ -9,8 +9,11 @@ import appStore from "./utils/redux/appStore";
 import ToastNotification from "./components/ToastNotification";
 import RedirectIfAuthenticated from "./Routes/RedirectRoute/RedirectRoute";
 import ProtectedRoute from "./Routes/protectedRoutes/ProtectedRoute";
+import { useEffect } from "react";
+import useInitHook from "./hooks/useInitHook";
 
 function App() {
+  useInitHook();
   return (
     <Provider store={appStore}>
       {/* <AuthProvider> */}

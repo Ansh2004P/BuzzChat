@@ -2,6 +2,7 @@ import { Router } from "express"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
 import { uploadAvatar } from "../middlewares/multer.middleware.js"
 import {
+    CheckRefreshToken,
     deleteAvatar,
     deleteUser,
     getAllUsers,
@@ -23,7 +24,7 @@ router.route("/").get((_, res) => {
 router.route("/register").post(uploadAvatar.single("avatar"), registerUser)
 
 router.route("/get-users").get(verifyJWT, getAllUsers)
-
+router.route("/check-refresh-token").get(CheckRefreshToken)
 router.route("/login").post(loginUser)
 
 //secured Routes

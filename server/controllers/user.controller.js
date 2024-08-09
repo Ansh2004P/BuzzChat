@@ -245,6 +245,7 @@ const deleteUser = asyncHandler(async (req, res) => {
         .clearCookie("refreshToken", options)
         .json({ message: "User deleted successfully" })
 })
+
 const updateCurrentPassword = asyncHandler(async (req, res) => {
     const { currentPassword, newPassword } = req.body
 
@@ -382,6 +383,21 @@ const getAllUsers = asyncHandler(async (req, res) => {
     }
 })
 
+const CheckRefreshToken = asyncHandler(async (req, res) => {
+    try {
+        const refreshToken = req.cookies?.refreshToken
+        if (!refreshToken) {
+            localStorage.clear()
+            throw new ApiError(500, "No refresh token found")
+        }
+        return res
+            .status(200)
+            .json(new ApiResponse(200, {}, "Refresh token found"))
+    } catch (error) {
+        throw new ApiError(500, error?.message || "Something went wrong")
+    }
+})
+
 export {
     registerUser,
     loginUser,
@@ -394,4 +410,5 @@ export {
     updateUsername,
     deleteUser,
     getAllUsers,
+    CheckRefreshToken,
 }
