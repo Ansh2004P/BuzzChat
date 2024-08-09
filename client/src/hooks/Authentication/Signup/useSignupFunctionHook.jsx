@@ -1,4 +1,3 @@
-import React from "react";
 import { toast } from "react-toastify";
 import { Bounce } from "react-toastify";
 import { checkValidData } from "../../../utils/validate";
@@ -10,13 +9,10 @@ const useSignupFunctionHook = ({
   name,
   email,
   password,
-  errorMessage,
   setErrorMessage,
   avatar,
   setAvatar,
-  previewAvatar,
   setPreviewAvatar,
-  loading,
   setLoading,
 }) => {
   const handleButtonClick = async () => {

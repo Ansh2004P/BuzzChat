@@ -1,6 +1,5 @@
 import axios from "axios";
 import { LocalStorage } from "./utils";
-import { toast } from "react-toastify";
 
 // Create an axios instance for API request
 const apiClient = axios.create({

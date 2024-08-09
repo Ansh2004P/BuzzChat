@@ -9,9 +9,7 @@ const useLoginFunctionHook = ({
   name,
   email,
   password,
-  errorMessage,
   setErrorMessage,
-  loading,
   setLoading,
   dispatch,
 }) => {

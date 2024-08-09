@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { PencilIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-import { setUser, updateUser } from "../../utils/redux/userSlice";
+import { updateUser } from "../../utils/redux/userSlice";
 
 const UpdateName = () => {
   const username = useSelector((state) => state.user.user.username);

@@ -1,8 +1,5 @@
-import React, { useState } from "react";
-import { toast } from "react-toastify";
 import Loading from "../assets/images/Ellipsis@1x-1.8s-200px-200px";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+
 import useLogoutHook from "../hooks/useLogoutHook";
 
 const Logout = () => {

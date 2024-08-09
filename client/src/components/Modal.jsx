@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 
-import React, { useState } from "react";
+import  { useState } from "react";
 import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
 import AvatarSelector from "./userProfile/AvatarSelector";

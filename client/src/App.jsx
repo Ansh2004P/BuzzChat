@@ -3,7 +3,6 @@ import ChatPage from "./pages/ChatPage";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-// import { AuthProvider } from "./context/AuthContext";
 import { Provider } from "react-redux";
 import "react-toastify/dist/ReactToastify.css";
 import appStore from "./utils/redux/appStore";
