@@ -20,11 +20,14 @@ const useLogoutHook = () => {
           withCredentials: true,
         }
       );
-      // console.log(response);
+
+      // Clear user data from local storage and Redux state
       localStorage.removeItem("userInfo");
       dispatch(clearUser());
 
       setLoading(false);
+
+      // Show success toast message
       toast.success(response.data.message, {
         position: "bottom-center",
         autoClose: 5000,
@@ -34,10 +37,14 @@ const useLogoutHook = () => {
         draggable: true,
       });
 
-      navigate("/login");
+      // Navigate to the login page after logout
+      navigate("/login", { replace: true });
     } catch (error) {
       setLoading(false);
-      const errorMessage = error.response.data.message;
+
+      // Extract and show error message from the response
+      const errorMessage =
+        error.response?.data?.message || "Logout failed. Please try again.";
       toast.error(errorMessage, {
         position: "bottom-center",
         autoClose: 5000,

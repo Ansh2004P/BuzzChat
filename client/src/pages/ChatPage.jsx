@@ -5,11 +5,24 @@ import MyChats from "../components/Chats/MyChats";
 import Heading from "../components/Heading";
 import useGetCurrentUser from "../hooks/useGetCurrentUser";
 import ChatIcon from "../utils/icons/ChatIcon";
+import { useState, useEffect } from "react";
 
 const ChatPage = () => {
   const { user } = useGetCurrentUser();
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!user) {
+  useEffect(() => {
+    if (user) {
+      // Wait for 2 seconds before setting isLoading to false
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+
+      return () => clearTimeout(timer); // Cleanup the timer
+    }
+  }, [user]);
+
+  if (isLoading) {
     return (
       <div className="w-screen h-screen bg-black bg-opacity-90 flex flex-col justify-center">
         <Loading />
