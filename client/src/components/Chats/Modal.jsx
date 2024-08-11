@@ -7,13 +7,18 @@ import Participants from "./Participants";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { extractErrorMessage } from "../../utils/utils";
+import useChatState from "../../hooks/useChatState";
+import { useDispatch } from "react-redux";
+import { addChat } from "../../utils/redux/chatSlice";
 
 const Modal = ({ onClose }) => {
+  
   const groupName = useRef("");
   const [participants, setParticipants] = useState(new Map());
 
   const [searchResult, setSearchResult] = useState([]);
-
+  const dispatch = useDispatch();
+  // console.log(chats);
   useEffect(() => {
     const handleEscape = (event) => {
       if (event.key === "Escape") {
@@ -39,7 +44,7 @@ const Modal = ({ onClose }) => {
         username: details.username,
       })
     );
-    console.log(participantsArray);
+    // console.log(participantsArray);
 
     try {
       const response = await axios.post(
@@ -55,7 +60,8 @@ const Modal = ({ onClose }) => {
         }
       );
 
-      // console.log(response);
+      dispatch(addChat(response.data?.data));
+
       toast.success(response.data.message, {
         position: "bottom-center",
         autoClose: 5000,
@@ -67,6 +73,7 @@ const Modal = ({ onClose }) => {
         theme: "dark",
       });
     } catch (error) {
+      // console.log(error.response.data)
       const errorMessage = extractErrorMessage(error.response.data);
       toast.error(errorMessage, {
         position: "top-right",

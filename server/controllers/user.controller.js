@@ -387,7 +387,6 @@ const CheckRefreshToken = asyncHandler(async (req, res) => {
     try {
         const refreshToken = req.cookies?.refreshToken
         if (!refreshToken) {
-            localStorage.clear()
             throw new ApiError(500, "No refresh token found")
         }
         return res

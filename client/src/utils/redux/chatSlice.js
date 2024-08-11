@@ -21,9 +21,22 @@ const chatSlice = createSlice({
     setChats: (state, action) => {
       state.chats = action.payload;
     },
+    addChat: (state, action) => {
+      // Append the new chat to the state array
+      state.push(action.payload);
+    },
+    removeChat: (state, payload) => {
+      state.chats = state.chats.filter((chat) => chat._id !== payload);
+    },
   },
 });
 
-export const { setSelectedChat, setNotification, setChats } = chatSlice.actions;
+export const {
+  setSelectedChat,
+  setNotification,
+  setChats,
+  addChat,
+  removeChat,
+} = chatSlice.actions;
 
 export default chatSlice.reducer;

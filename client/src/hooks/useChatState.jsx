@@ -4,6 +4,8 @@ import {
   setSelectedChat,
   setNotification,
   setChats,
+  addChat,
+  removeChat,
 } from "../utils/redux/chatSlice";
 
 const useChatState = () => {
@@ -15,6 +17,11 @@ const useChatState = () => {
     setSelectedChat: (chat) => dispatch(setSelectedChat(chat)),
     setNotification: (notification) => dispatch(setNotification(notification)),
     setChats: (chats) => dispatch(setChats(chats)),
+    addChat: ( data ) => {
+      console.log(data);
+      dispatch(addChat(data));
+    },
+    removeChat: (chatId) => dispatch(removeChat(chatId)),
   };
 };
 

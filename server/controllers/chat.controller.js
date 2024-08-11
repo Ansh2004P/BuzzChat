@@ -200,11 +200,17 @@ const getChat = asyncHandler(async (req, res) => {
         // Build the aggregate pipeline
         const pipeline = [
             { $match: matchStage },
+            {
+                $project: {
+                    password: 0,
+                },
+            },
             // You can add more stages here if needed, such as $sort, $limit, etc.
         ]
 
         // Execute the aggregate pipeline
         const users = await User.aggregate(pipeline)
+        console.log(users)
 
         // Check if users were found
         if (!users || users.length === 0) {
@@ -235,8 +241,8 @@ const createGroupChat = asyncHandler(async (req, res) => {
     try {
         const groupChat = await Chat.create({
             chatName: req.body.groupName,
-            participants: users.map((user) =>
-               new mongoose.Types.ObjectId(user._id)
+            participants: users.map(
+                (user) => new mongoose.Types.ObjectId(user._id)
             ), // Convert to ObjectId
             isGroupChat: true,
             admin: [req.user],
