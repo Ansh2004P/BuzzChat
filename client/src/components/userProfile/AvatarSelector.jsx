@@ -36,7 +36,7 @@ const AvatarSelector = ({ photu, onAvatarChange }) => {
           formData,
           config
         );
-        console.log(response);
+        // console.log(response);
         setLoading(false);
 
         toast.success(response.data.message, {

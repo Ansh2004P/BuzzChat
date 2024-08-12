@@ -1,30 +1,63 @@
-// src/components/ChatList.js
 import React from "react";
 import { Scrollbars } from "react-custom-scrollbars";
 import useChatState from "../../hooks/useChatState";
 import PropTypes from "prop-types";
+import useGetCurrentUser from "../../hooks/useGetCurrentUser";
+import useAccessChat from "../../hooks/Chat/useAccessChat";
+import useUser from "../../hooks/Chat/useUser";
 
 const ChatList = React.memo(function ChatList({ chats }) {
   const { selectedChat, setSelectedChat, notification } = useChatState();
+  const {
+    data: currentUser,
+    isLoading: isUserLoading,
+    error: userError,
+  } = useUser(); // Fetch current user details
+  const {
+    mutateAsync: accessChat,
+    isLoading: isAccessChatLoading,
+    error: accessChatError,
+  } = useAccessChat();
 
-  // console.log(chats);
+  const handleChatClick = async (userId) => {
+    try {
+      const chatData = await accessChat(userId);
+
+      setSelectedChat({
+        _id: chatData._id,
+        user: Array.isArray(chatData.participants)
+          ? chatData.participants.filter((user) => user._id !== currentUser._id)
+          : [],
+      });
+    } catch (error) {
+      console.error("Error accessing chat:", error);
+    }
+  };
+
+  if (isUserLoading) return <p>Loading user...</p>;
+  if (userError) return <p>Error loading user: {userError.message}</p>;
+
   return (
     <div className="flex flex-col py-3 my-2 w-full h-full rounded-lg overflow-hidden">
-      {chats ? (
+      {isAccessChatLoading ? (
+        <p>Loading chats...</p>
+      ) : accessChatError ? (
+        <p>Error accessing chat: {accessChatError.message}</p>
+      ) : chats.length ? (
         <Scrollbars autoHide>
           <div>
             {chats.map((chat) => (
               <div
                 key={chat._id}
-                onClick={() => setSelectedChat(chat)}
+                onClick={() => handleChatClick(chat._id)}
                 className={`cursor-pointer py-4 px-4 mx-1 my-2 rounded-lg w-[28vw] h-fit ${
-                  selectedChat === chat
+                  selectedChat?._id === chat._id
                     ? "bg-neutral-500 text-white"
                     : "bg-neutral-700 text-white"
                 } hover:bg-neutral-400 hover:text-white`}
               >
                 <div className="flex justify-between">
-                  <div className="flex ">
+                  <div className="flex">
                     <img
                       src={chat.avatar}
                       alt="avatar"
@@ -45,7 +78,7 @@ const ChatList = React.memo(function ChatList({ chats }) {
           </div>
         </Scrollbars>
       ) : (
-        <p>Loading...</p>
+        <p>No chats available</p>
       )}
     </div>
   );

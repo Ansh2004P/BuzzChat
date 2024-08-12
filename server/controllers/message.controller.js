@@ -85,75 +85,61 @@ const sendMessage = asyncHandler(async (req, res) => {
     const { chatId } = req.params
     const { content } = req.body
 
-    if (!content && !req.files?.attachment.length) {
+    // console.log(chatId)
+
+    if (!content && (!req.files || req.files.attachment.length === 0)) {
         throw new ApiError(400, "Message content or attachment is required")
     }
 
     const selectedChat = await Chat.findById(chatId)
-
+    // console.log(selectedChat +" i")
     if (!selectedChat) {
         throw new ApiError(404, "Chat not found")
     }
 
     const messageFiles = []
-
     if (req.files && req.files.attachment?.length > 0) {
-        req.files.attachment?.map((fle) => {
+        req.files.attachment.map((file) => {
             messageFiles.push({
-                url: getStaticFilePath(req, fle.filename),
-                localPath: getLocalPath(fle.filename),
+                url: getStaticFilePath(req, file.filename),
+                localPath: getLocalPath(file.filename),
             })
         })
     }
 
-    // Create a new message instance with appropriate metadata
     const message = await Message.create({
-        sender: mongoose.Types.ObjectId(req.user?._id),
+        sender: new mongoose.Types.ObjectId(req.user._id),
         content: content || "",
-        chat: mongoose.Types.ObjectId(chatId),
+        chat: new mongoose.Types.ObjectId(chatId),
         attachment: messageFiles,
     })
 
-    // update the chat's last message
     const chat = await Chat.findByIdAndUpdate(
         chatId,
-        {
-            $set: {
-                lastMessage: message._id,
-            },
-        },
+        { $set: { lastMessage: message._id } },
         { new: true }
     )
 
-    // Structure the message
     const messages = await Message.aggregate([
-        {
-            $match: {
-                _id: mongoose.Types.ObjectId(message._id),
-            },
-        },
+        { $match: { _id: new mongoose.Types.ObjectId(message._id) } },
         ...chatMessageCommonAggregation(),
     ])
 
     const receivedMessage = messages[0]
-
     if (!receivedMessage) {
         throw new ApiError(500, "Error while sending message")
     }
 
-    // logic to emit socket event about the new message created to other participants
-    chat.participants.forEach((participantObjectId) => {
-        // avoid emitting event to user who is sending the message
-        if (participantObjectId.toString() === req.user._id.toString()) return
+    // chat.participants.forEach((participantObjectId) => {
+    //     if (participantObjectId.toString() === req.user._id.toString()) return
 
-        // emit the receive message event to the other participants with received message as the payload
-        emitSocketEvent(
-            req,
-            participantObjectId.toString(),
-            ChatEventEnum.MESSAGE_RECEIVED_EVENT,
-            receivedMessage
-        )
-    })
+    //     emitSocketEvent(
+    //         req,
+    //         participantObjectId.toString(),
+    //         ChatEventEnum.MESSAGE_RECEIVED_EVENT,
+    //         receivedMessage
+    //     )
+    // })
 
     return res
         .status(201)
@@ -176,7 +162,7 @@ const deleteMessage = asyncHandler(async (req, res) => {
 
     // Find the message to be deleted based on message id
     const message = await Message.findOne({
-        _id: mongoose.Types.ObjectId(messageId),
+        _id:new mongoose.Types.ObjectId(messageId),
     })
 
     if (!message) {
@@ -197,7 +183,7 @@ const deleteMessage = asyncHandler(async (req, res) => {
 
     // Delete the message from the database
     await Message.deleteOne({
-        _id: mongoose.Types.ObjectId(messageId),
+        _id:new mongoose.Types.ObjectId(messageId),
     })
 
     //Updating the last message of the chat to the previous message after deletion if the message deleted was last message

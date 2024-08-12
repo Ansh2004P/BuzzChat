@@ -15,7 +15,9 @@ const ChatInfo = ({ avatar, wsize, hsize }) => {
         alt="avatar"
         className="rounded-full w-full h-full object-cover"
       />
+      
     </div>
+    
   );
 };
 

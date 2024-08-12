@@ -6,6 +6,67 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import mongoose from "mongoose"
 
+const chatCommonAggregation = () => {
+    return [
+        {
+            // lookup for the participants present
+            $lookup: {
+                from: "users",
+                foreignField: "_id",
+                localField: "participants",
+                as: "participants",
+                pipeline: [
+                    {
+                        $project: {
+                            password: 0,
+                            refreshToken: 0,
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            // lookup for the group chats
+            $lookup: {
+                from: "chatmessages",
+                foreignField: "_id",
+                localField: "lastMessage",
+                as: "lastMessage",
+                pipeline: [
+                    {
+                        // get details of the sender
+                        $lookup: {
+                            from: "users",
+                            foreignField: "_id",
+                            localField: "sender",
+                            as: "sender",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        username: 1,
+                                        avatar: 1,
+                                        email: 1,
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        $addFields: {
+                            sender: { $first: "$sender" },
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $addFields: {
+                lastMessage: { $first: "$lastMessage" },
+            },
+        },
+    ]
+}
+
 const accessChat = asyncHandler(async (req, res) => {
     const { userId } = req.body
 
@@ -14,80 +75,71 @@ const accessChat = asyncHandler(async (req, res) => {
         throw new ApiError(400, "User Id is required")
     }
 
+    // Check if it's a valid receiver
+    const receiver = await User.findById(userId)
+
+    if (!receiver) {
+        throw new ApiError(404, "Receiver does not exist")
+    }
+    
     try {
-        const isChat = await Chat.aggregate([
+        // Check if the receiver is not the same as the user making the request
+        if (receiver._id.toString() === req.user._id.toString()) {
+            throw new ApiError(400, "You cannot chat with yourself")
+        }
+
+        // Find if a one-on-one chat already exists between the two users
+        const chat = await Chat.aggregate([
             {
                 $match: {
-                    isGroupChat: false,
-                    users: { $all: [req.user._id, userId] },
+                    isGroupChat: false, // Filter out group chats
+                    participants: {
+                        $all: [
+                            req.user._id,
+                            new mongoose.Types.ObjectId(userId),
+                        ], // Ensure both users are participants
+                    },
                 },
             },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "users",
-                    foreignField: "_id",
-                    as: "users",
-                },
-            },
-            {
-                $lookup: {
-                    from: "messages",
-                    localField: "latestMessage",
-                    foreignField: "_id",
-                    as: "latestMessage",
-                },
-            },
-            {
-                $unwind: {
-                    path: "$latestMessage",
-                    preserveNullAndEmptyArrays: true,
-                },
-            },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "latestMessage.sender",
-                    foreignField: "_id",
-                    as: "latestMessage.sender",
-                },
-            },
-            {
-                $unwind: {
-                    path: "$latestMessage.sender",
-                    preserveNullAndEmptyArrays: true,
-                },
-            },
-            {
-                $project: {
-                    "users.password": 0,
-                    "latestMessage.sender.password": 0,
-                },
-            },
+            ...chatCommonAggregation(), // Apply common aggregation logic
         ])
 
-        if (isChat.length > 0) {
-            return res.status(200).json(isChat[0])
-        } else {
-            // Create a new chat if not found
-            const chatData = {
-                chatName: "sender",
-                isGroupChat: false,
-                users: [req.user._id, userId],
-            }
-
-            const createChat = await Chat.create(chatData)
-
-            const fullChat = await Chat.findOne({
-                _id: createChat._id,
-            }).populate("users", "-password", "-refreshToken")
-
+        if (chat.length > 0) {
+            // If a chat already exists, return it
             return res
                 .status(200)
                 .json(
-                    new ApiResponse(200, fullChat, "Chat created successfully")
+                    new ApiResponse(200, chat[0], "Chat retrieved successfully")
                 )
         }
+
+        // If no chat exists, create a new one
+        const newChatInstance = await Chat.create({
+            chatName: "One-on-one chat",
+            participants: [req.user._id, userId], // Include both users as participants
+            admin: [req.user._id], // Set the logged-in user as the admin
+        })
+
+        // Retrieve the newly created chat with the same aggregation logic
+        const createdChat = await Chat.aggregate([
+            {
+                $match: {
+                    _id: newChatInstance._id,
+                },
+            },
+            ...chatCommonAggregation(), // Apply common aggregation logic
+        ])
+
+        const payload = createdChat[0]
+
+        if (!payload) {
+            throw new ApiError(500, "Internal server error")
+        }
+
+        // Return the created chat
+        return res
+            .status(201)
+            .json(new ApiResponse(201, payload, "Chat created successfully"))
     } catch (error) {
         throw new ApiError(500, error.message || "Unable to access chats")
     }
@@ -210,7 +262,7 @@ const getChat = asyncHandler(async (req, res) => {
 
         // Execute the aggregate pipeline
         const users = await User.aggregate(pipeline)
-        console.log(users)
+        // console.log(users)
 
         // Check if users were found
         if (!users || users.length === 0) {

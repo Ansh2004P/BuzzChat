@@ -1,6 +1,6 @@
 const Loading = () => {
   return (
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex justify-center items-center h-full">
       <div className="loadingio-spinner-ellipsis-nq4q5u6dq7r">
         <div className="ldio-x2uulkbinbj">
           <div></div>
