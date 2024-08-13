@@ -9,14 +9,7 @@ const useChatScreen = () => {
   const [istyping, setIsTyping] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState([]);
 
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: animationData,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
-  };
+ 
   return {
     messages,
     setMessages,
@@ -27,7 +20,6 @@ const useChatScreen = () => {
     setTyping,
     istyping,
     setIsTyping,
-    defaultOptions,
     attachedFiles,
     setAttachedFiles,
   };

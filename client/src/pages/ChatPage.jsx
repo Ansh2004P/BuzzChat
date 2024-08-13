@@ -14,25 +14,24 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (user) {
-      // Wait for 2 seconds before setting isLoading to false
       const timer = setTimeout(() => {
         setIsLoading(false);
       }, 1000);
 
-      return () => clearTimeout(timer); // Cleanup the timer
+      return () => clearTimeout(timer);
     }
   }, [user]);
 
   if (isLoading) {
     return (
-      <div className="w-screen h-screen bg-black bg-opacity-90 flex flex-col justify-center">
+      <div className="flex justify-center items-center w-screen h-screen bg-black bg-opacity-90">
         <Loading />
       </div>
     );
   }
 
   return (
-    <div className="h-screen w-screen bg-black bg-opacity-90 flex flex-col">
+    <div className="flex flex-col h-screen w-screen bg-black bg-opacity-90">
       <Heading user={user} />
       <div className="flex justify-between w-full h-[82%]">
         <MyChats />

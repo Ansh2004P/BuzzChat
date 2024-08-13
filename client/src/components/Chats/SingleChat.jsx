@@ -1,18 +1,23 @@
-import React, { useEffect } from "react";
-import useChatState from "../../hooks/useChatState";
+import React, { useState, useCallback } from "react";
 import VoiceCall from "./VoiceCall";
 import VideoCall from "./VideoCall";
 import ChatInfo from "./ChatInfo";
 import ChatModal from "./ChatModal";
 import { ArrowRightIcon, PaperClipIcon } from "@heroicons/react/24/solid";
 import useChatScreen from "../../hooks/Chat/useChatScreen";
-import Lottie from "react-lottie";
 import Loading from "../../assets/images/Ellipsis@1x-1.8s-200px-200px";
 import ScrollableChat from "./ScrollableChat";
 import axios from "axios";
+import { toast } from "react-toastify";
+import Lottie from "react-lottie";
+import PropTypes from "prop-types";
+import useChatState from "../../hooks/useChatState";
+import useSocket from "../../hooks/Socket/useSocket";
+import useMessages from "../../hooks/Messages/useMessages";
+import useLottieOptions from "../../hooks/useLottieOptions";
 
-const SingleChat = () => {
-  const { selectedChat } = useChatState();
+const SingleChat = ({ fetchAgain, setFetchAgain }) => {
+  const { selectedChat, notification, setNotification } = useChatState();
   const {
     newMessage,
     istyping,
@@ -20,64 +25,90 @@ const SingleChat = () => {
     loading,
     setLoading,
     messages,
-    setMessage,
-    defaultOptions,
+    setMessages,
     attachedFiles,
     setAttachedFiles,
   } = useChatScreen();
-  const [showProfile, setShowProfile] = React.useState(false);
-  // console.log(selectedChat);
+  const [showProfile, setShowProfile] = useState(false);
+  const user = selectedChat?.user;
 
-  useEffect(() => {
-    // console.log(selectedChat);
-    // if (!selectedChat) {
-    //   setLoading(true);
-    //   return;
-    // } else {
-    //   setLoading(false);
-    //   return;
-    // }
-  }, [selectedChat]);
-  const user = selectedChat.user;
-  // console.log(user[0].username);
-  // console.log(user[0].avatar);
+  const { socket, socketConnected } = useSocket(
+    user,
+    selectedChat,
+    setMessages,
+    setFetchAgain,
+    setNotification,
+    setIsTyping
+  );
 
-  // console.log(newMessage);
-  const handleShowProfile = () => {
-    setShowProfile(true);
-  };
+  useMessages(selectedChat, setMessages, setLoading);
 
-  const sendMessage = async (e) => {
-    if (e.key === "Enter" && newMessage) {
-      // console.log("hi");
-      try {
-        const config = {
-          withCredentials: true,
-        };
+  const defaultOptions = useLottieOptions();
 
-        const formData = new FormData();
-        formData.append("content", newMessage.current.value);
+  const handleShowProfile = () => setShowProfile(true);
 
-        attachedFiles?.forEach((file) => {
-          formData.append("attachment", file);
-        });
+  const sendMessage = useCallback(
+    async (e) => {
+      if (
+        (e.key === "Enter" && newMessage.current.value) ||
+        e.type === "click"
+      ) {
+        try {
+          const config = { withCredentials: true };
+          const formData = new FormData();
+          formData.append("content", newMessage.current.value);
 
-        const res = await axios.post(
-          `${import.meta.env.VITE_SERVER_URI}/message/${
-            selectedChat?._id
-          }?chatId=${selectedChat?._id}`,
-          formData,
-          config
-        );
+          attachedFiles?.forEach((file) => {
+            formData.append("attachment", file);
+          });
 
-        // console.log(res);
-      } catch (error) {
-        console.log(error);
+          const res = await axios.post(
+            `${import.meta.env.VITE_SERVER_URI}/message/${
+              selectedChat?._id
+            }?chatId=${selectedChat?._id}`,
+            formData,
+            config
+          );
+
+          setMessages([res.data.data, ...messages]);
+          newMessage.current.value = "";
+
+          if (istyping) {
+            setIsTyping(false);
+            socket.current.emit("stopTyping", selectedChat._id);
+          }
+        } catch (error) {
+          toast.error("Failed to send message", {
+            position: "bottom-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+          });
+        } finally {
+          setLoading(false);
+        }
       }
-    }
-  };
+    },
+    [attachedFiles, messages, selectedChat?._id, istyping]
+  );
 
-  const typingHandler = () => {};
+  const typingHandler = useCallback(() => {
+    if (!socketConnected) return;
+
+    const messageContent = newMessage.current.value;
+
+    if (messageContent) {
+      if (!istyping) {
+        setIsTyping(true);
+        socket.current.emit("typing", selectedChat._id);
+      }
+    } else if (istyping) {
+      setIsTyping(false);
+      socket.current.emit("stopTyping", selectedChat._id);
+    }
+  }, [socketConnected, istyping, selectedChat?._id]);
 
   if (loading) {
     return <Loading />;
@@ -85,7 +116,7 @@ const SingleChat = () => {
 
   return (
     <div className="rounded-2xl mx-4 bg-neutral-800 w-[67%] h-[100%] flex flex-col">
-      <div className="bg-emerald-700 w-full h-fit rounded-t-2xl  flex justify-between">
+      <div className="bg-emerald-700 w-full h-fit rounded-t-2xl flex justify-between">
         <span className="text-white font-semibold font-sans text-2xl p-6 ml-8">
           {user ? user[0].username : "Default"}
         </span>
@@ -103,22 +134,20 @@ const SingleChat = () => {
         {loading ? (
           <Loading />
         ) : (
-          <div className="messages">
-            <ScrollableChat messages={messages} />
+          <div className="w-full h-full">
+            <ScrollableChat messages={messages} id={selectedChat._id} />
           </div>
         )}
       </div>
-      {istyping ? (
+      {istyping && (
         <div>
           <Lottie
             options={defaultOptions}
             height={50}
-            width={70}
-            style={{ marginBottom: 15, marginLeft: 0 }}
+            width={100}
+            style={{ marginBottom: 15, marginLeft: 10 }}
           />
         </div>
-      ) : (
-        <></>
       )}
 
       <div className="h-[8%] w-[100%] rounded-b-2xl bg-stone-700 flex pl-2">
@@ -133,15 +162,18 @@ const SingleChat = () => {
           onChange={typingHandler}
           onKeyDown={sendMessage}
         />
-        <button
-          className="w-[7%] h-11 bg-emerald-700 rounded-br-2xl hover:bg-emerald-600"
+        <ArrowRightIcon
           onClick={sendMessage}
-        >
-          <ArrowRightIcon className="w-6 h-6 text-white mx-6" />
-        </button>
+          className="h-8 w-8 text-white mx-3 my-auto cursor-pointer hover:bg-stone-600 rounded-full"
+        />
       </div>
     </div>
   );
+};
+
+SingleChat.propTypes = {
+  fetchAgain: PropTypes.bool,
+  setFetchAgain: PropTypes.func,
 };
 
 export default SingleChat;

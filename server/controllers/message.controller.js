@@ -59,13 +59,19 @@ const getAllMessages = asyncHandler(async (req, res) => {
     const messages = await Message.aggregate([
         {
             $match: {
-                chat: mongoose.Types.ObjectId(chatId),
+                chat: new mongoose.Types.ObjectId(chatId),
             },
         },
         ...chatMessageCommonAggregation(),
         {
             $sort: {
                 createdAt: -1,
+            },
+        },
+        {
+            $project: {
+                createdAt: 0,
+                updatedAt: 0,
             },
         },
     ])
@@ -162,7 +168,7 @@ const deleteMessage = asyncHandler(async (req, res) => {
 
     // Find the message to be deleted based on message id
     const message = await Message.findOne({
-        _id:new mongoose.Types.ObjectId(messageId),
+        _id: new mongoose.Types.ObjectId(messageId),
     })
 
     if (!message) {
@@ -183,7 +189,7 @@ const deleteMessage = asyncHandler(async (req, res) => {
 
     // Delete the message from the database
     await Message.deleteOne({
-        _id:new mongoose.Types.ObjectId(messageId),
+        _id: new mongoose.Types.ObjectId(messageId),
     })
 
     //Updating the last message of the chat to the previous message after deletion if the message deleted was last message

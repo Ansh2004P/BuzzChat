@@ -29,5 +29,4 @@ app.use("/api/v1/chat", chatRoutes)
 app.use("/api/v1/message", messageRoutes)
 
 
-
-export { app }
+export { app, corsOptions }

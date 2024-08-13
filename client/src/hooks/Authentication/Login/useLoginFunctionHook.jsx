@@ -15,25 +15,28 @@ const useLoginFunctionHook = ({
 }) => {
   const handleButtonClick = async () => {
     setLoading(true);
+
     try {
+      // Validate form data
       if (!name.current.value && !email.current.value) {
-        setLoading(false);
         setErrorMessage("Both name and email cannot be empty");
         return;
       }
 
-      const check = checkValidData(email.current.value, password.current.value);
-      setErrorMessage(check);
-      if (check) {
-        setLoading(false);
+      const validationError = checkValidData(email.current.value, password.current.value);
+      if (validationError) {
+        setErrorMessage(validationError);
         return;
       }
 
-      const formData = new FormData();
-      formData.append("username", name.current.value);
-      formData.append("email", email.current.value);
-      formData.append("password", password.current.value);
+      // Prepare request data
+      const userData = {
+        username: name.current.value,
+        email: email.current.value,
+        password: password.current.value,
+      };
 
+      // Send request
       const config = {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
@@ -41,10 +44,11 @@ const useLoginFunctionHook = ({
 
       const { data } = await axios.post(
         `${import.meta.env.VITE_SERVER_URI}/user/login`,
-        formData,
+        userData,
         config
       );
 
+      // Handle successful response
       toast.success("Login successful", {
         position: "bottom-center",
         autoClose: 5000,
@@ -56,18 +60,14 @@ const useLoginFunctionHook = ({
         theme: "dark",
       });
 
+      // Store user info and navigate
       localStorage.setItem("userInfo", JSON.stringify(data));
-
-      setLoading(false);
-
-      const userInfo = data.data;
-      // console.log( userInfo );
-      dispatch(setUser(userInfo));
-
+      dispatch(setUser(data.data));
       navigate("/chats");
+
     } catch (error) {
-      setLoading(false);
-      const errorMessage = extractErrorMessage(error.response.data);
+      // Handle error response
+      const errorMessage = extractErrorMessage(error.response?.data || {});
       toast.error(errorMessage, {
         position: "top-right",
         autoClose: 5000,
@@ -77,8 +77,11 @@ const useLoginFunctionHook = ({
         draggable: true,
         theme: "dark",
       });
+    } finally {
+      setLoading(false);
     }
   };
+
   return { handleButtonClick };
 };
 
