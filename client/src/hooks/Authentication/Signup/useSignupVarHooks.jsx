@@ -7,10 +7,11 @@ const useSignupVarHooks = () => {
   const name = useRef(null);
   const email = useRef(null);
   const password = useRef(null);
-
+  const avatar = useRef(null);
+  const previewAvatar = useRef(null);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [avatar, setAvatar] = useState(null);
-  const [previewAvatar, setPreviewAvatar] = useState(null);
+
+ 
   const [loading, setLoading] = useState(false);
 
   return {
@@ -21,9 +22,7 @@ const useSignupVarHooks = () => {
     errorMessage,
     setErrorMessage,
     avatar,
-    setAvatar,
     previewAvatar,
-    setPreviewAvatar,
     loading,
     setLoading,
   };

@@ -22,26 +22,26 @@ const ScrollableChat = ({ messages, id }) => {
             <div
               key={index}
               className={`${
-                message._id === `${id}` ? "flex-row-reverse" : "flex-row"
-              } flex w-fit justify-between h-fit max-w-lg`}
+                message._id !== `${id}` ? "flex-row-reverse" : "flex-row"
+              } flex w-full justify-between h-fit `}
             >
               <div
                 className={`relative mx-2 ${
-                  message._id === `${id}`
-                    ? "bg-emerald-700 text-white rounded-r-lg"
+                  message._id !== id
+                    ? "bg-emerald-700 text-white rounded-l-lg rounded-br-lg"
                     : "bg-neutral-700 text-white rounded-b-lg rounded-t-lg"
-                } p-2 px-4 my-2`}
+                } p-2 px-4 my-2 mx-4`}
               >
                 {message.content}
-                {message._id !== `${id}` ? (
+                {message._id !== id ? (
                   <>
-                    <div className="absolute top-0 left-0 w-4 h-4 bg-neutral-700 rounded-bl-lg transform -translate-x-2 -translate-y-3/2"></div>
-                    <div className="absolute top-0 left-0 w-4 h-4 bg-neutral-800 rounded-tr-lg transform -translate-x-4 -translate-y-3/2"></div>
+                    <div className="absolute top-0 right-[-10px] h-[12px] w-[20px] bg-emerald-700 " />
+                    <div className="absolute top-[1px] right-[-12px] h-[12px] w-[12px] bg-neutral-800 rounded-tl-lg" />
                   </>
                 ) : (
                   <>
-                    <div className="absolute top-0 left-0 w-4 h-4 bg-neutral-700 rounded-br-lg transform -translate-x-2 -translate-y-3/2"></div>
-                    <div className="absolute top-0 left-0 w-4 h-4 bg-neutral-800 rounded-tl-lg transform -translate-x-4 -translate-y-3/2"></div>
+                    <div className="absolute top-0 left-0 w-4 h-4 bg-neutral-700 rounded-bl-lg transform -translate-x-2 -translate-y-3/2"></div>
+                    <div className="absolute top-0 left-0 w-4 h-4 bg-neutral-800 rounded-tr-lg transform -translate-x-4 -translate-y-3/2"></div>
                   </>
                 )}
               </div>

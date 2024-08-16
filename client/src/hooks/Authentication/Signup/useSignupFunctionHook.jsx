@@ -1,7 +1,7 @@
 import { toast } from "react-toastify";
 import { Bounce } from "react-toastify";
 import { checkValidData } from "../../../utils/validate";
-import {extractErrorMessage} from "../../../utils/utils";
+import { extractErrorMessage } from "../../../utils/utils";
 import axios from "axios";
 
 const useSignupFunctionHook = ({
@@ -11,8 +11,7 @@ const useSignupFunctionHook = ({
   password,
   setErrorMessage,
   avatar,
-  setAvatar,
-  setPreviewAvatar,
+  previewAvatar,
   setLoading,
 }) => {
   const handleButtonClick = async () => {
@@ -31,7 +30,7 @@ const useSignupFunctionHook = ({
         return;
       }
 
-      if (!avatar)
+      if (!avatar.current)
         return toast.error("Please select avatar", {
           position: "bottom-center",
           autoClose: 5000,
@@ -49,7 +48,7 @@ const useSignupFunctionHook = ({
       formData.append("email", email.current.value);
       formData.append("password", password.current.value);
       if (avatar) {
-        formData.append("avatar", avatar);
+        formData.append("avatar", avatar.current);
       }
 
       const config = {
@@ -90,10 +89,10 @@ const useSignupFunctionHook = ({
 
   const handleAvatarChange = (file) => {
     if (file) {
-      setAvatar(file);
+      avatar.current = file;
       const reader = new FileReader();
       reader.onload = () => {
-        setPreviewAvatar(reader.result);
+        previewAvatar.current = reader.result;
       };
       reader.readAsDataURL(file);
     }

@@ -8,8 +8,9 @@ const useChatScreen = () => {
   const [typing, setTyping] = useState(false);
   const [istyping, setIsTyping] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState([]);
+  const [selfTyping, setSelfTyping] = useState(false); // To track if the current user is typing
+  const [localSearchQuery, setLocalSearchQuery] = useState(""); // For local search functionality
 
- 
   return {
     messages,
     setMessages,
@@ -22,6 +23,11 @@ const useChatScreen = () => {
     setIsTyping,
     attachedFiles,
     setAttachedFiles,
+    selfTyping,
+    setSelfTyping,
+    localSearchQuery,
+    setLocalSearchQuery,
+
   };
 };
 

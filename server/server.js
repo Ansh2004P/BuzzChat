@@ -13,49 +13,56 @@ connectDB()
         server = app.listen(process.env.PORT || 8000, () => {
             console.log(`⚙️ Server is running at port : ${process.env.PORT}`)
         })
-
         const io = new Server(server, {
             pingTimeout: 60000,
-            corsOptions,
+            cors: corsOptions, // Ensure correct property name
         })
+
         console.log("Socket.io is running")
 
         io.on("connection", (socket) => {
             console.log("Connected to socket.io")
 
+            // When a user connects, they join a room with their user ID
             socket.on("setup", (userData) => {
                 socket.join(userData._id)
                 socket.emit("connected")
-                console.log("setup")
+                console.log("User setup complete for:", userData._id)
             })
 
-            socket.on("join chat", (room) => {
+            // User joins a specific chat room
+            socket.on("joinChat", (room) => {
                 socket.join(room)
-                console.log("User Joined Room: " + room)
+                console.log("User Joined Room:", room)
             })
 
-            socket.on("typing", (room) => socket.in(room).emit("typing"))
-            socket.on("stopTyping", (room) =>
+            // Handling typing notifications
+            socket.on("typing", (room) => {
+                socket.in(room).emit("typing")
+                console.log(`User is typing in room: ${room}`)
+            })
+
+            socket.on("stopTyping", (room) => {
                 socket.in(room).emit("stopTyping")
-            )
-
-            socket.on("messageRecieved", (newMessageRecieved) => {
-                var chat = newMessageRecieved.chat
-
-                if (!chat.users) return console.log("chat.users not defined")
-
-                chat.users.forEach((user) => {
-                    if (user._id == newMessageRecieved.sender._id) return
-
-                    socket
-                        .in(user._id)
-                        .emit("messageRecieved", newMessageRecieved)
-                })
+                console.log(`User stopped typing in room: ${room}`)
             })
 
-            socket.off("setup", (userData) => {
+            // Handling message received
+            socket.on("messageRecieved", (newMessageRecieved) => {
+                const chatId = newMessageRecieved.chat // Directly using chat ID since it's a string
+
+                if (!newMessageRecieved.sender) {
+                    return console.log("Sender not defined")
+                }
+
+                // Ensure that the message is emitted to the correct room
+                socket.in(chatId).emit("messageRecieved", newMessageRecieved)
+                console.log(`Message received in room: ${chatId}`)
+            })
+
+            // Handle disconnects
+            socket.on("disconnect", () => {
                 console.log("USER DISCONNECTED")
-                socket.leave(userData._id)
             })
         })
     })

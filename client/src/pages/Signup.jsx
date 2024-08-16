@@ -10,9 +10,7 @@ const Signup = () => {
     errorMessage,
     setErrorMessage,
     avatar,
-    setAvatar,
     previewAvatar,
-    setPreviewAvatar,
     loading,
     setLoading,
   } = useSignupVarHooks();
@@ -22,8 +20,8 @@ const Signup = () => {
     email,
     password,
     setErrorMessage,
-    setAvatar,
-    setPreviewAvatar,
+    avatar,
+    previewAvatar,
     navigate,
     setLoading,
   });
@@ -37,9 +35,9 @@ const Signup = () => {
             htmlFor="avatar-input"
             className="cursor-pointer relative w-28 h-28 rounded-full overflow-hidden border-4 border-gray-700"
           >
-            {previewAvatar ? (
+            {previewAvatar.current ? (
               <img
-                src={previewAvatar}
+                src={previewAvatar.current}
                 alt="Avatar"
                 className="w-full h-full object-cover"
               />

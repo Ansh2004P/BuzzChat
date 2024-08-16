@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import useSearchUser from "../hooks/useSearchUser";
 import PropTypes from "prop-types";
 
-const SearchBar = ({ onSearchResult }) => {
+const SearchBar = ({ onSearchResult, initialResult }) => {
   const searchUser = useRef("");
   const prevValue = useRef("");
 
@@ -13,12 +13,11 @@ const SearchBar = ({ onSearchResult }) => {
     const currentValue = e.target.value;
 
     if (prevValue.current !== "" && currentValue === "") {
-      setSearchResult([]);
+      setSearchResult(initialResult); // Reset to initial chat list
     }
     prevValue.current = currentValue;
   };
 
-  // Use useEffect to monitor searchResult and return it to the parent component
   useEffect(() => {
     onSearchResult(searchResult);
   }, [searchResult, onSearchResult]);
@@ -37,6 +36,7 @@ const SearchBar = ({ onSearchResult }) => {
 
 SearchBar.propTypes = {
   onSearchResult: PropTypes.func.isRequired,
+  initialResult: PropTypes.array.isRequired, // Expect initialResult as an array
 };
 
 export default SearchBar;

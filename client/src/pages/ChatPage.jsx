@@ -1,5 +1,4 @@
 // ChatPage.js
-
 import Loading from "../assets/images/Ellipsis@1x-1.8s-200px-200px";
 import ChatWindow from "../components/Chats/ChatWindow";
 import MyChats from "../components/Chats/MyChats";
@@ -34,7 +33,7 @@ const ChatPage = () => {
     <div className="flex flex-col h-screen w-screen bg-black bg-opacity-90">
       <Heading user={user} />
       <div className="flex justify-between w-full h-[82%]">
-        <MyChats />
+        <MyChats currUserId ={user._id}/>
         <ChatWindow />
       </div>
     </div>

@@ -216,7 +216,7 @@ const fetchChats = asyncHandler(async (req, res) => {
         ])
 
         return res
-            .status(20)
+            .status(200)
             .json(new ApiResponse(200, chats, "Chats fetched successfully"))
     } catch (error) {
         throw new ApiError(500, error.message || "Unable to fetch chats")

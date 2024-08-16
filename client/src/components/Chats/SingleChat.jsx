@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import VoiceCall from "./VoiceCall";
 import VideoCall from "./VideoCall";
 import ChatInfo from "./ChatInfo";
@@ -12,9 +12,12 @@ import { toast } from "react-toastify";
 import Lottie from "react-lottie";
 import PropTypes from "prop-types";
 import useChatState from "../../hooks/useChatState";
-import useSocket from "../../hooks/Socket/useSocket";
-import useMessages from "../../hooks/Messages/useMessages";
+
 import useLottieOptions from "../../hooks/useLottieOptions";
+
+import io from "socket.io-client";
+
+var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const { selectedChat, notification, setNotification } = useChatState();
@@ -28,24 +31,95 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     setMessages,
     attachedFiles,
     setAttachedFiles,
+    selfTyping,
+    setSelfTyping,
+    localSearchQuery,
+    setLocalSearchQuery,
+    typing,
+    setTyping,
   } = useChatScreen();
+
+  const [socketConnected, setSocketConnected] = useState(false);
+
   const [showProfile, setShowProfile] = useState(false);
   const user = selectedChat?.user;
 
-  const { socket, socketConnected } = useSocket(
-    user,
-    selectedChat,
-    setMessages,
-    setFetchAgain,
-    setNotification,
-    setIsTyping
-  );
+  useEffect(() => {
+    socket = io(`${import.meta.env.VITE_SOCKET_URI}`);
+    socket.emit("setup", user[0]);
+    socket.on("typing", () => setIsTyping(true));
+    socket.on("stopTyping", () => setIsTyping(false));
+    socket.on("connected", () => setSocketConnected(true));
 
-  useMessages(selectedChat, setMessages, setLoading);
+    socket.on("messageRecieved", (newMessage) => {
+      // Append the new message to the existing list of messages
+
+      setMessages((prevMessages) => {
+        // console.log("Previous messages:", prevMessages);
+        return [newMessage, ...prevMessages];
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    socket.on("messageRecieved", (newMessageRecieved) => {
+      if (
+        !selectedChatCompare || // if chat is not selected or doesn't match current chat
+        selectedChatCompare._id !== newMessageRecieved.chat._id
+      ) {
+        if (!notification.includes(newMessageRecieved)) {
+          setNotification([newMessageRecieved, ...notification]);
+          setFetchAgain(!fetchAgain);
+        }
+      } else {
+        setMessages([...messages, newMessageRecieved]);
+      }
+    });
+  });
+
+  // const currentUser =  useGetCurrentUser();
+
+  // const { socket } = useSocket();
+
+  const cancelTokenRef = useRef(null);
 
   const defaultOptions = useLottieOptions();
 
   const handleShowProfile = () => setShowProfile(true);
+
+  const fetchMessages = async () => {
+    if (!selectedChat) return;
+
+    try {
+      const config = {
+        withCredentials: true,
+      };
+
+      setLoading(true);
+
+      const { data } = await axios.get(
+        ` ${import.meta.env.VITE_SERVER_URI}/message/${
+          selectedChat._id
+        }?chatId=${selectedChat._id}`,
+        config
+      );
+      setMessages(data.data);
+      setLoading(false);
+
+      socket.emit("joinChat", selectedChat._id);
+    } catch (error) {
+      toast.error("Failed to fetch messages", {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const sendMessage = useCallback(
     async (e) => {
@@ -53,6 +127,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         (e.key === "Enter" && newMessage.current.value) ||
         e.type === "click"
       ) {
+        socket.emit("stopTyping", selectedChat._id);
         try {
           const config = { withCredentials: true };
           const formData = new FormData();
@@ -69,14 +144,11 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             formData,
             config
           );
-
+          socket.emit("messageRecieved", res.data.data);
+          console.log("res", res.data.data);
           setMessages([res.data.data, ...messages]);
-          newMessage.current.value = "";
 
-          if (istyping) {
-            setIsTyping(false);
-            socket.current.emit("stopTyping", selectedChat._id);
-          }
+          newMessage.current.value = "";
         } catch (error) {
           toast.error("Failed to send message", {
             position: "bottom-center",
@@ -93,27 +165,36 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     },
     [attachedFiles, messages, selectedChat?._id, istyping]
   );
+  //
 
-  const typingHandler = useCallback(() => {
+  const typingHandler = () => {
     if (!socketConnected) return;
 
     const messageContent = newMessage.current.value;
-
     if (messageContent) {
-      if (!istyping) {
-        setIsTyping(true);
-        socket.current.emit("typing", selectedChat._id);
+      if (typing == false) {
+        setTyping(true);
+        socket.emit("typing", selectedChat._id);
       }
-    } else if (istyping) {
-      setIsTyping(false);
-      socket.current.emit("stopTyping", selectedChat._id);
+    } else if (typing) {
+      setTyping(false);
+      socket.emit("stopTyping", selectedChat._id);
     }
-  }, [socketConnected, istyping, selectedChat?._id]);
+  };
+
+  useEffect(() => {
+    fetchMessages();
+  }, [selectedChat]);
 
   if (loading) {
-    return <Loading />;
+    return (
+      <div className="w-[60%]">
+        <Loading />
+      </div>
+    );
   }
 
+  // console.log("messages", messages);
   return (
     <div className="rounded-2xl mx-4 bg-neutral-800 w-[67%] h-[100%] flex flex-col">
       <div className="bg-emerald-700 w-full h-fit rounded-t-2xl flex justify-between">
@@ -140,12 +221,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         )}
       </div>
       {istyping && (
-        <div>
+        <div className="flex w-1/4 justify-start my-3">
           <Lottie
             options={defaultOptions}
             height={50}
             width={100}
-            style={{ marginBottom: 15, marginLeft: 10 }}
+            className="mb-4"
           />
         </div>
       )}

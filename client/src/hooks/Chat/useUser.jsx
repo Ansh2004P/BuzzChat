@@ -3,7 +3,7 @@ import { useQuery } from "react-query";
 import axios from "axios";
 
 const fetchUser = async (userId) => {
-  const { data } = await axios.get(`/api/users/${userId}`);
+  const { data } = await axios.get(`/api/user/${userId}`);
   return data;
 };
 

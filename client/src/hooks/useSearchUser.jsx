@@ -19,6 +19,7 @@ const useSearchUser = (searchUser) => {
             withCredentials: true,
           }
         );
+        // console.log(response.data.data);
         setSearchResult(response.data.data);
       } catch (err) {
         const errorMessage = extractErrorMessage(err.response.data);

@@ -22,7 +22,7 @@ const ChatList = React.memo(function ChatList({ chats }) {
   const handleChatClick = async (userId) => {
     try {
       const chatData = await accessChat(userId);
-
+      console.log(chatData);
       setSelectedChat({
         _id: chatData._id,
         user: Array.isArray(chatData.participants)
@@ -39,9 +39,7 @@ const ChatList = React.memo(function ChatList({ chats }) {
 
   return (
     <div className="flex flex-col py-3 my-2 w-full h-full rounded-lg overflow-hidden">
-      {isAccessChatLoading ? (
-        <p>Loading chats...</p>
-      ) : accessChatError ? (
+      {accessChatError ? (
         <p>Error accessing chat: {accessChatError.message}</p>
       ) : chats.length ? (
         <Scrollbars autoHide>
