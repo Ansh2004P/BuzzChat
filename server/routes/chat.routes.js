@@ -10,6 +10,7 @@ import {
     removeFromGroup,
     renameGroup,
 } from "../controllers/chat.controller.js"
+import { uploadAvatar } from "../middlewares/multer.middleware.js"
 
 const router = express.Router()
 
@@ -18,7 +19,7 @@ router.use(verifyJWT)
 router.route("/").get(fetchChats)
 
 router.route("/").post(accessChat)
-router.route("/group").post(createGroupChat)
+router.route("/group").post(uploadAvatar.single("avatar"),createGroupChat)
 router.route("/search-user").get(getChat)
 
 router.route("/rename").put(renameGroup)

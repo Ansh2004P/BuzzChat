@@ -16,10 +16,13 @@ import useChatState from "../../hooks/useChatState";
 import useLottieOptions from "../../hooks/useLottieOptions";
 
 import io from "socket.io-client";
+import useGetCurrentUser from "../../hooks/useGetCurrentUser";
 
 var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
+  const currentUser = useGetCurrentUser();
+
   const { selectedChat, notification, setNotification } = useChatState();
   const {
     newMessage,
@@ -31,10 +34,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     setMessages,
     attachedFiles,
     setAttachedFiles,
-    selfTyping,
-    setSelfTyping,
-    localSearchQuery,
-    setLocalSearchQuery,
     typing,
     setTyping,
   } = useChatScreen();
@@ -43,7 +42,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
   const [showProfile, setShowProfile] = useState(false);
   const user = selectedChat?.user;
+  console.log(user);
 
+  console.log(currentUser);
   useEffect(() => {
     socket = io(`${import.meta.env.VITE_SOCKET_URI}`);
     socket.emit("setup", user[0]);
@@ -76,12 +77,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       }
     });
   });
-
-  // const currentUser =  useGetCurrentUser();
-
-  // const { socket } = useSocket();
-
-  const cancelTokenRef = useRef(null);
 
   const defaultOptions = useLottieOptions();
 
@@ -216,7 +211,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           <Loading />
         ) : (
           <div className="w-full h-full">
-            <ScrollableChat messages={messages} id={selectedChat._id} />
+            <ScrollableChat messages={messages} id={currentUser._id} />
           </div>
         )}
       </div>

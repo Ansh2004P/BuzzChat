@@ -5,6 +5,7 @@ import { Message } from "../model/message.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import mongoose from "mongoose"
+import { uploadOnCloudinary } from "../utils/cloudinary.js"
 
 const chatCommonAggregation = () => {
     return [
@@ -81,7 +82,7 @@ const accessChat = asyncHandler(async (req, res) => {
     if (!receiver) {
         throw new ApiError(404, "Receiver does not exist")
     }
-    
+
     try {
         // Check if the receiver is not the same as the user making the request
         if (receiver._id.toString() === req.user._id.toString()) {
@@ -282,6 +283,9 @@ const createGroupChat = asyncHandler(async (req, res) => {
     if (!req.body.participants || !req.body.groupName) {
         throw new ApiError(400, "Participants and group name are required")
     }
+    let avatarLocalURL = req.file.path
+
+    const avatar = await uploadOnCloudinary(avatarLocalURL)
 
     let users = JSON.parse(req.body.participants)
     if (users.length < 2) {
@@ -298,6 +302,7 @@ const createGroupChat = asyncHandler(async (req, res) => {
             ), // Convert to ObjectId
             isGroupChat: true,
             admin: [req.user],
+            avatar: avatar.url,
         })
 
         const fullGroupChat = await Chat.findOne({

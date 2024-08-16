@@ -26,6 +26,9 @@ const chatSchema = new Schema(
                 ref: "User",
             },
         ],
+        avatar: {
+            type: String,
+        }
     },
     { timestamps: true }
 )
