@@ -42,9 +42,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
   const [showProfile, setShowProfile] = useState(false);
   const user = selectedChat?.user;
-  console.log(user);
+  // console.log("user", user);
 
-  console.log(currentUser);
+  // console.log(currentUser);
   useEffect(() => {
     socket = io(`${import.meta.env.VITE_SOCKET_URI}`);
     socket.emit("setup", user[0]);
@@ -140,10 +140,14 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             config
           );
           socket.emit("messageRecieved", res.data.data);
-          console.log("res", res.data.data);
           setMessages([res.data.data, ...messages]);
 
+          // Clear the input field
           newMessage.current.value = "";
+
+          // Reset typing state
+          setTyping(false);
+          socket.emit("stopTyping", selectedChat._id);
         } catch (error) {
           toast.error("Failed to send message", {
             position: "bottom-center",
@@ -158,16 +162,15 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         }
       }
     },
-    [attachedFiles, messages, selectedChat?._id, istyping]
+    [attachedFiles, messages, selectedChat?._id]
   );
-  //
 
   const typingHandler = () => {
     if (!socketConnected) return;
 
     const messageContent = newMessage.current.value;
     if (messageContent) {
-      if (typing == false) {
+      if (!typing) {
         setTyping(true);
         socket.emit("typing", selectedChat._id);
       }
@@ -189,21 +192,37 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     );
   }
 
+  // console.log(user[0]._id === currentUser._id);
   // console.log("messages", messages);
   return (
     <div className="rounded-2xl mx-4 bg-neutral-800 w-[67%] h-[100%] flex flex-col">
       <div className="bg-emerald-700 w-full h-fit rounded-t-2xl flex justify-between">
         <span className="text-white font-semibold font-sans text-2xl p-6 ml-8">
-          {user ? user[0].username : "Default"}
+          {user?.[0]?._id === currentUser.user._id
+            ? user?.[1]?.username || "Default"
+            : user?.[0]?.username || "Default"}
         </span>
         <div className="flex w-fit space-x-2 mr-4 p-2">
           <VoiceCall />
           <VideoCall />
           <div onClick={handleShowProfile}>
-            <ChatInfo avatar={user[0].avatar} wsize={"50px"} hsize={"50px"} />
+            <ChatInfo
+              avatar={
+                user?.[0]?._id === currentUser.user._id
+                  ? user[1]?.avatar
+                  : user[0]?.avatar
+              }
+              wsize={"50px"}
+              hsize={"50px"}
+            />
           </div>
         </div>
-        {showProfile && <ChatModal onclose={() => setShowProfile(false)} />}
+        {showProfile && (
+          <ChatModal
+            currUser={currentUser.user}
+            onclose={() => setShowProfile(false)}
+          />
+        )}
       </div>
 
       <div className="bg-neutral-800 h-[78%] w-full p-4">
