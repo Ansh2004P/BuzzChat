@@ -41,9 +41,12 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [socketConnected, setSocketConnected] = useState(false);
 
   const [showProfile, setShowProfile] = useState(false);
-  const user = selectedChat?.user;
-  // console.log("user", user);
+  // console.log("Chat", selectedChat);
+  const user = selectedChat?.isGroupChat
+    ? selectedChat.users
+    : selectedChat?.user;
 
+  // console.log("user", user[0]);
   // console.log(currentUser);
   useEffect(() => {
     socket = io(`${import.meta.env.VITE_SOCKET_URI}`);
@@ -192,13 +195,20 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     );
   }
 
+  // console.log("selectedChat", selectedChat);
+
   // console.log(user[0]._id === currentUser._id);
   // console.log("messages", messages);
+
+  // if (!selectedChat.isGroupchat) {
+  // }
   return (
     <div className="rounded-2xl mx-4 bg-neutral-800 w-[67%] h-[100%] flex flex-col">
       <div className="bg-emerald-700 w-full h-fit rounded-t-2xl flex justify-between">
         <span className="text-white font-semibold font-sans text-2xl p-6 ml-8">
-          {user?.[0]?._id === currentUser.user._id
+          {selectedChat.isGroupChat
+            ? selectedChat.chatName
+            : user?.[0]?._id === currentUser.user._id
             ? user?.[1]?.username || "Default"
             : user?.[0]?.username || "Default"}
         </span>
@@ -208,7 +218,9 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           <div onClick={handleShowProfile}>
             <ChatInfo
               avatar={
-                user?.[0]?._id === currentUser.user._id
+                selectedChat.isGroupChat
+                  ? selectedChat.avatar
+                  : user?.[0]?._id === currentUser.user._id
                   ? user[1]?.avatar
                   : user[0]?.avatar
               }
@@ -230,7 +242,11 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           <Loading />
         ) : (
           <div className="w-full h-full">
-            <ScrollableChat messages={messages} id={currentUser._id} />
+            <ScrollableChat
+              messages={messages}
+              id={currentUser.user._id}
+              groupChat={selectedChat.isGroupChat}
+            />
           </div>
         )}
       </div>

@@ -25,6 +25,7 @@ connectDB()
 
             // When a user connects, they join a room with their user ID
             socket.on("setup", (userData) => {
+                console.log(userData)
                 socket.join(userData._id)
                 socket.emit("connected")
                 console.log("User setup complete for:", userData._id)

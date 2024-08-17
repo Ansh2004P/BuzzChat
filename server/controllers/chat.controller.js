@@ -69,78 +69,115 @@ const chatCommonAggregation = () => {
 }
 
 const accessChat = asyncHandler(async (req, res) => {
-    const { userId } = req.body
+    const { userId, isGroupChat } = req.body
 
     if (!userId) {
         console.log("User ID is required")
-        throw new ApiError(400, "User Id is required")
+        throw new ApiError(400, "User ID is required")
     }
 
-    // Check if it's a valid receiver
-    const receiver = await User.findById(userId)
-
-    if (!receiver) {
-        throw new ApiError(404, "Receiver does not exist")
-    }
+    let chat
 
     try {
-        // Check if the receiver is not the same as the user making the request
-        if (receiver._id.toString() === req.user._id.toString()) {
-            throw new ApiError(400, "You cannot chat with yourself")
-        }
-
-        // Find if a one-on-one chat already exists between the two users
-        const chat = await Chat.aggregate([
-            {
-                $match: {
-                    isGroupChat: false, // Filter out group chats
-                    participants: {
-                        $all: [
-                            req.user._id,
-                            new mongoose.Types.ObjectId(userId),
-                        ], // Ensure both users are participants
+        if (isGroupChat) {
+            // Check if it's a valid group chat
+            chat = await Chat.aggregate([
+                {
+                    $match: {
+                        _id: new mongoose.Types.ObjectId(userId),
+                        isGroupChat: true,
                     },
                 },
-            },
-            ...chatCommonAggregation(), // Apply common aggregation logic
-        ])
+                ...chatCommonAggregation(), // Apply common aggregation logic
+            ])
 
-        if (chat.length > 0) {
-            // If a chat already exists, return it
+            if (chat.length === 0) {
+                throw new ApiError(404, "Group chat does not exist")
+            }
+
+            const payload = chat[0]
+
             return res
                 .status(200)
                 .json(
-                    new ApiResponse(200, chat[0], "Chat retrieved successfully")
+                    new ApiResponse(
+                        200,
+                        payload,
+                        "Group chat retrieved successfully"
+                    )
+                )
+        } else {
+            // Check if it's a valid receiver for one-on-one chat
+            const receiver = await User.findById(userId)
+
+            if (!receiver) {
+                throw new ApiError(404, "Receiver does not exist")
+            }
+
+            // Check if the receiver is not the same as the user making the request
+            if (receiver._id.toString() === req.user._id.toString()) {
+                throw new ApiError(400, "You cannot chat with yourself")
+            }
+
+            // Find if a one-on-one chat already exists between the two users
+            chat = await Chat.aggregate([
+                {
+                    $match: {
+                        isGroupChat: false, // Filter out group chats
+                        participants: {
+                            $all: [
+                                req.user._id,
+                                new mongoose.Types.ObjectId(userId),
+                            ], // Ensure both users are participants
+                        },
+                    },
+                },
+                ...chatCommonAggregation(), // Apply common aggregation logic
+            ])
+
+            if (chat.length > 0) {
+                // If a chat already exists, return it
+                return res
+                    .status(200)
+                    .json(
+                        new ApiResponse(
+                            200,
+                            chat[0],
+                            "Chat retrieved successfully"
+                        )
+                    )
+            }
+
+            // If no chat exists, create a new one
+            const newChatInstance = await Chat.create({
+                chatName: "One-on-one chat",
+                participants: [req.user._id, userId], // Include both users as participants
+                admin: [req.user._id], // Set the logged-in user as the admin
+            })
+
+            // Retrieve the newly created chat with the same aggregation logic
+            const createdChat = await Chat.aggregate([
+                {
+                    $match: {
+                        _id: newChatInstance._id,
+                    },
+                },
+                ...chatCommonAggregation(), // Apply common aggregation logic
+            ])
+
+            const payload = createdChat[0]
+
+            if (!payload) {
+                throw new ApiError(500, "Internal server error")
+            }
+
+            // Return the created chat
+            return res
+                .status(201)
+                .json(
+                    new ApiResponse(201, payload, "Chat created successfully")
                 )
         }
-
-        // If no chat exists, create a new one
-        const newChatInstance = await Chat.create({
-            chatName: "One-on-one chat",
-            participants: [req.user._id, userId], // Include both users as participants
-            admin: [req.user._id], // Set the logged-in user as the admin
-        })
-
-        // Retrieve the newly created chat with the same aggregation logic
-        const createdChat = await Chat.aggregate([
-            {
-                $match: {
-                    _id: newChatInstance._id,
-                },
-            },
-            ...chatCommonAggregation(), // Apply common aggregation logic
-        ])
-
-        const payload = createdChat[0]
-
-        if (!payload) {
-            throw new ApiError(500, "Internal server error")
-        }
-
-        // Return the created chat
-        return res
-            .status(201)
-            .json(new ApiResponse(201, payload, "Chat created successfully"))
     } catch (error) {
         throw new ApiError(500, error.message || "Unable to access chats")
     }

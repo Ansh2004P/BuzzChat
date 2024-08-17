@@ -19,16 +19,26 @@ const MyChats = ({ currUserId }) => {
         }
       );
 
+      // console.log(data);
+
       const uniqueParticipants = {};
 
       data.data.forEach((element) => {
-        if (element.isGroupChat) return;
-
-        element.participants.forEach((participant) => {
-          if (participant._id !== currUserId) {
-            uniqueParticipants[participant._id] = participant;
-          }
-        });
+        if (element.isGroupChat) {
+          uniqueParticipants[element._id] = {
+            _id: element._id,
+            username: element.chatName,
+            avatar: element.avatar,
+            isGroupChat: true,
+            participants: element.participants,
+          };
+        } else {
+          element.participants.forEach((participant) => {
+            if (participant._id !== currUserId) {
+              uniqueParticipants[participant._id] = participant;
+            }
+          });
+        }
       });
 
       const uniqueParticipantsArray = Object.values(uniqueParticipants);

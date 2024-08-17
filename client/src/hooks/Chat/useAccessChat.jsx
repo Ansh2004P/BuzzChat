@@ -2,7 +2,7 @@
 import { useMutation } from 'react-query';
 import axios from 'axios';
 
-const accessChat = async (userId) => {
+const accessChat = async ({userId, isGroupChat}) => {
   const config = {
     withCredentials: true,
     headers: {
@@ -12,7 +12,7 @@ const accessChat = async (userId) => {
 
   const res = await axios.post(
     `${import.meta.env.VITE_SERVER_URI}/chat/`,
-    { userId },
+    { userId, isGroupChat },
     config
   );
   // console.log(res.data.data);
