@@ -90,15 +90,13 @@ const getAllMessages = asyncHandler(async (req, res) => {
 const sendMessage = asyncHandler(async (req, res) => {
     const { chatId } = req.params
     const { content } = req.body
-
-    // console.log(chatId)
+    const attachment = req.file
 
     if (!content && (!req.files || req.files.attachment.length === 0)) {
         throw new ApiError(400, "Message content or attachment is required")
     }
 
     const selectedChat = await Chat.findById(chatId)
-    // console.log(selectedChat +" i")
     if (!selectedChat) {
         throw new ApiError(404, "Chat not found")
     }
@@ -135,17 +133,6 @@ const sendMessage = asyncHandler(async (req, res) => {
     if (!receivedMessage) {
         throw new ApiError(500, "Error while sending message")
     }
-
-    // chat.participants.forEach((participantObjectId) => {
-    //     if (participantObjectId.toString() === req.user._id.toString()) return
-
-    //     emitSocketEvent(
-    //         req,
-    //         participantObjectId.toString(),
-    //         ChatEventEnum.MESSAGE_RECEIVED_EVENT,
-    //         receivedMessage
-    //     )
-    // })
 
     return res
         .status(201)

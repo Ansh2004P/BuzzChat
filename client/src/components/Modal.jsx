@@ -59,7 +59,7 @@ const Modal = ({ onClose }) => {
     // Refresh the page
     window.location.reload();
   };
-
+ 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       {/* Overlay */}

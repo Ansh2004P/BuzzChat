@@ -10,3 +10,31 @@ export const extractErrorMessage = (html) => {
   return match ? match[1] : null;
 };
 
+// timestampFormatter.js
+
+export function formatTimestamp(isoTimestamp) {
+  // Create a new Date object from the ISO timestamp
+  const date = new Date(isoTimestamp);
+
+  // Extract the individual components
+  const year = date.getFullYear();
+  const month = date.toLocaleString("default", { month: "long" });
+  const day = date.getDate();
+
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+  const milliseconds = date.getMilliseconds();
+
+  // Determine AM or PM
+  const ampm = hours >= 12 ? "PM" : "AM";
+
+  // Convert hours from 24-hour to 12-hour format
+  hours = hours % 12 || 12;
+
+  // Construct the formatted time and date string
+  const formattedTime = `${hours}:${minutes} ${ampm}`;
+  const formattedDate = `${day} ${month} ${year}`;
+
+  return `${formattedDate} at ${formattedTime}`;
+}

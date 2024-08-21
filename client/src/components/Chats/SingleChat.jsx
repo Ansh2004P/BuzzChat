@@ -17,12 +17,12 @@ import useLottieOptions from "../../hooks/useLottieOptions";
 
 import io from "socket.io-client";
 import useGetCurrentUser from "../../hooks/useGetCurrentUser";
+import GroupChatModal from "./GroupChatmodal";
 
 var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const currentUser = useGetCurrentUser();
-
   const { selectedChat, notification, setNotification } = useChatState();
   const {
     newMessage,
@@ -38,16 +38,14 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     setTyping,
   } = useChatScreen();
 
-  const [socketConnected, setSocketConnected] = useState(false);
+  // console.log(selectedChat);
 
+  const [socketConnected, setSocketConnected] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  // console.log("Chat", selectedChat);
   const user = selectedChat?.isGroupChat
     ? selectedChat.users
     : selectedChat?.user;
 
-  // console.log("user", user[0]);
-  // console.log(currentUser);
   useEffect(() => {
     socket = io(`${import.meta.env.VITE_SOCKET_URI}`);
     socket.emit("setup", user[0]);
@@ -56,10 +54,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     socket.on("connected", () => setSocketConnected(true));
 
     socket.on("messageRecieved", (newMessage) => {
-      // Append the new message to the existing list of messages
-
       setMessages((prevMessages) => {
-        // console.log("Previous messages:", prevMessages);
         return [newMessage, ...prevMessages];
       });
     });
@@ -142,6 +137,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             formData,
             config
           );
+
+          console.log("Message sent", res.data);
           socket.emit("messageRecieved", res.data.data);
           setMessages([res.data.data, ...messages]);
 
@@ -195,17 +192,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     );
   }
 
-  // console.log("selectedChat", selectedChat);
-
-  // console.log(user[0]._id === currentUser._id);
-  // console.log("messages", messages);
-
-  // if (!selectedChat.isGroupchat) {
-  // }
   return (
     <div className="rounded-2xl mx-4 bg-neutral-800 w-[67%] h-[100%] flex flex-col">
       <div className="bg-emerald-700 w-full h-fit rounded-t-2xl flex justify-between">
-        <span className="text-white font-semibold font-sans text-2xl p-6 ml-8">
+        <span className="text-white font-semibold font-sans text-xl p-6 ml-8">
           {selectedChat.isGroupChat
             ? selectedChat.chatName
             : user?.[0]?._id === currentUser.user._id
@@ -215,7 +205,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         <div className="flex w-fit space-x-2 mr-4 p-2">
           <VoiceCall />
           <VideoCall />
-          <div onClick={handleShowProfile}>
+          <div onClick={handleShowProfile} className="ml-10 px-2">
             <ChatInfo
               avatar={
                 selectedChat.isGroupChat
@@ -229,12 +219,18 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             />
           </div>
         </div>
-        {showProfile && (
-          <ChatModal
-            currUser={currentUser.user}
-            onclose={() => setShowProfile(false)}
-          />
-        )}
+        {showProfile &&
+          (!selectedChat.isGroupChat ? (
+            <ChatModal
+              currUser={currentUser.user}
+              onclose={() => setShowProfile(false)}
+            />
+          ) : (
+            <GroupChatModal
+              chat={selectedChat}
+              onClose={() => setShowProfile(false)}
+            />
+          ))}
       </div>
 
       <div className="bg-neutral-800 h-[78%] w-full p-4">
@@ -262,9 +258,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       )}
 
       <div className="h-[8%] w-[100%] rounded-b-2xl bg-stone-700 flex pl-2">
-        <button className="ml-4 hover:bg-stone-600 rounded-full w-10 h-10 items-center mt-1">
-          <PaperClipIcon className="h-5 w-5 text-white m-2 " />
-        </button>
         <input
           className="ml-3 px-3 w-[89%] h-full bg-stone-700 focus:outline-none placeholder:text-gray-500 text-white"
           placeholder="Type a message"

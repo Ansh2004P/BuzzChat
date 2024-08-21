@@ -371,23 +371,26 @@ const addParticipant = asyncHandler(async (req, res) => {
 
     try {
         const [updatedChat] = await Chat.aggregate([
-            //Stage 1: Match the chat by Id
+            // Stage 1: Match the chat by Id
             {
                 $match: {
-                    _id: chatId,
+                    _id: new mongoose.Types.ObjectId(chatId),
                 },
             },
 
-            // Stage 2: Check if the requester is admin or not
+            // Stage 2: Check if the requester is an admin or not
             {
                 $addFields: {
                     isAdmin: {
-                        $in: [req.user._id, "$admin"],
+                        $in: [
+                            new mongoose.Types.ObjectId(req.user._id),
+                            "$admin",
+                        ],
                     },
                 },
             },
 
-            //Stage 3: Update the chat by pushing the userId into the users array
+            // Stage 3: Conditionally add the user to the participants array
             {
                 $addFields: {
                     participants: {
@@ -396,10 +399,13 @@ const addParticipant = asyncHandler(async (req, res) => {
                             {
                                 $cond: [
                                     {
-                                        $in: [userId, "$participants"],
+                                        $in: [
+                                            new mongoose.Types.ObjectId(userId),
+                                            "$participants",
+                                        ],
                                     },
                                     [],
-                                    [userId],
+                                    [new mongoose.Types.ObjectId(userId)],
                                 ],
                             },
                         ],
@@ -407,7 +413,7 @@ const addParticipant = asyncHandler(async (req, res) => {
                 },
             },
 
-            //Stage 4: Lookup to populate the fields
+            // Stage 4: Lookup to populate the fields
             {
                 $lookup: {
                     from: "users",
@@ -421,14 +427,24 @@ const addParticipant = asyncHandler(async (req, res) => {
                     from: "users",
                     localField: "admin",
                     foreignField: "_id",
-                    as: "admin",
+                    as: "adminDetails",
                 },
             },
+
+            // Stage 5: Project the necessary fields (inclusion only)
             {
                 $project: {
-                    "participants.password": 0,
-                    "admin.password": 0,
-                    admin: 1,
+                    "participants._id": 1,
+                    "participants.username": 1,
+                    "participants.avatar": 1,
+                    "adminDetails._id": 1,
+                    "adminDetails.username": 1,
+                    "adminDetails.avatar": 1,
+                    chatName: 1,
+                    isGroupChat: 1,
+                    lastMessage: 1,
+                    avatar: 1,
+                    isAdmin: 1,
                 },
             },
         ])
@@ -476,8 +492,8 @@ const removeFromGroup = asyncHandler(async (req, res) => {
                 new: true,
             }
         )
-            .populate("participants", "-password", "-refreshToken")
-            .populate("admin", "-password", "-refreshToken")
+            .populate("participants", "-password")
+            .populate("admin", "-password")
 
         if (!removed) {
             throw new ApiError(400, "Unable to remove participant")
@@ -509,8 +525,8 @@ const renameGroup = asyncHandler(async (req, res) => {
                 new: true,
             }
         )
-            .populate("participants", "-password", "-refreshToken")
-            .populate("admin", "-password", "-refreshToken")
+            .populate("participants", "-password")
+            .populate("admin", "-password")
 
         if (!updatedName) {
             throw new ApiError(400, "Unable to rename group")
@@ -530,11 +546,11 @@ const renameGroup = asyncHandler(async (req, res) => {
 })
 
 const leaveGroupChat = asyncHandler(async (req, res) => {
-    const { chatId } = req.params
+    const { chatId } = req.body
 
     // Check if the chat is a group
     const groupChat = await Chat.findOne({
-        _id: mongoose.Types.ObjectId(chatId),
+        _id: new mongoose.Types.ObjectId(chatId),
         isGroupChat: true,
     })
 
@@ -545,34 +561,65 @@ const leaveGroupChat = asyncHandler(async (req, res) => {
     const existingParticipants = groupChat.participants
 
     // Check if the participant leaving the group is part of the group
-    if (!existingParticipants.includes(req.user._id)) {
+    if (
+        !existingParticipants.includes(
+            new mongoose.Types.ObjectId(req.user._id)
+        )
+    ) {
         throw new ApiError(400, "You are not part of this group")
     }
 
-    // Remove the user from the participants array
+    // Step 1: Remove the user from the participants array
     await Chat.findByIdAndUpdate(
-        chatId,
+        new mongoose.Types.ObjectId(chatId),
         {
-            $pull: { participants: req.user._id },
+            $pull: { participants: new mongoose.Types.ObjectId(req.user._id) },
         },
         { new: true }
     )
 
-    // Check if the chat is empty and optionally delete
-    const updatedChat = await Chat.findById(chatId)
+    // Step 2: Remove the user from the admin array (if they are an admin)
+    await Chat.findByIdAndUpdate(
+        new mongoose.Types.ObjectId(chatId),
+        {
+            $pull: { admin: new mongoose.Types.ObjectId(req.user._id) },
+        },
+        { new: true }
+    )
+
+    // Fetch the updated chat to check the state of participants and admin arrays
+    const updatedChat = await Chat.findById(new mongoose.Types.ObjectId(chatId))
 
     if (updatedChat.participants.length === 0) {
-        await Chat.findByIdAndDelete(chatId)
+        // Step 3: If no participants left, delete the group chat
+        await Chat.findByIdAndDelete(new mongoose.Types.ObjectId(chatId))
         return res.status(200).json({
             message: "Group chat deleted as it has no participants left",
         })
     }
 
-    // Aggregation pipeline to enrich the chat document
+    if (updatedChat.admin.length === 0 && updatedChat.participants.length > 0) {
+        // Step 4: If admin array is empty, choose a random participant as the new admin
+        const randomIndex = Math.floor(
+            Math.random() * updatedChat.participants.length
+        )
+        const newAdmin = updatedChat.participants[randomIndex]
+
+        // Add the new admin to the admin array
+        await Chat.findByIdAndUpdate(
+            new mongoose.Types.ObjectId(chatId),
+            {
+                $push: { admin: new mongoose.Types.ObjectId(newAdmin) },
+            },
+            { new: true }
+        )
+    }
+
+    // Step 5: Re-run the aggregation pipeline to fetch the updated chat details
     const chatPipeline = [
         {
             $match: {
-                _id: mongoose.Types.ObjectId(chatId),
+                _id: new mongoose.Types.ObjectId(chatId),
             },
         },
         {
@@ -630,7 +677,6 @@ const leaveGroupChat = asyncHandler(async (req, res) => {
         },
     ]
 
-    // Fetch the updated chat with aggregation pipeline
     const enrichedChat = await Chat.aggregate(chatPipeline).exec()
 
     if (!enrichedChat) {
@@ -648,6 +694,42 @@ const leaveGroupChat = asyncHandler(async (req, res) => {
         )
 })
 
+const updateGroupChatAvatar = asyncHandler(async (req, res) => {
+    const { chatId } = req.body
+
+    if (!req.file) {
+        throw new ApiError(400, "Avatar is required")
+    }
+
+    const avatarLocalURL = req.file.path
+
+    const avatar = await uploadOnCloudinary(avatarLocalURL)
+
+    const updatedChat = await Chat.findByIdAndUpdate(
+        chatId,
+        {
+            avatar: avatar.url,
+        },
+        {
+            new: true,
+        }
+    )
+
+    if (!updatedChat) {
+        throw new ApiError(400, "Unable to update group chat avatar")
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                updatedChat,
+                "Group chat avatar updated successfully"
+            )
+        )
+})
+
 export {
     accessChat,
     fetchChats,
@@ -657,4 +739,5 @@ export {
     renameGroup,
     leaveGroupChat,
     getChat,
+    updateGroupChatAvatar,
 }

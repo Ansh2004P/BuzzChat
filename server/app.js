@@ -1,22 +1,38 @@
 import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
+import helmet from "helmet"
+import rateLimit from "express-rate-limit"
 
 const app = express()
 
 // Configuration options for cors
 const corsOptions = {
-    origin: "http://localhost:5173",
+    origin: process.env.CORS_ORIGIN || "*",
     methods: ["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"],
     credentials: true,
 }
 
+// Rate limiter
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+})
+app.use(limiter)
 app.use(cors(corsOptions))
 
 app.use(express.json({ limit: "16kb" }))
 app.use(express.urlencoded({ extended: true, limit: "16kb" }))
 app.use(express.static("public"))
 app.use(cookieParser())
+
+import path from "path"
+
+app.use(express.static(path.join(__dirname, "../client/dist")))
+
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../client/dist", "index.html"))
+})
 
 // routes Import
 import userRoutes from "./routes/user.routes.js"
@@ -27,6 +43,5 @@ import messageRoutes from "./routes/message.routes.js"
 app.use("/api/v1/user", userRoutes)
 app.use("/api/v1/chat", chatRoutes)
 app.use("/api/v1/message", messageRoutes)
-
 
 export { app, corsOptions }
