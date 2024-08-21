@@ -26,14 +26,6 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }))
 app.use(express.static("public"))
 app.use(cookieParser())
 
-import path from "path"
-
-app.use(express.static(path.join(__dirname, "../client/dist")))
-
-app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../client/dist", "index.html"))
-})
-
 // routes Import
 import userRoutes from "./routes/user.routes.js"
 import chatRoutes from "./routes/chat.routes.js"
