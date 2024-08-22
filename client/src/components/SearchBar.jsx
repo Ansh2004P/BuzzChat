@@ -1,23 +1,32 @@
-import { useEffect, useRef } from "react";
-import useSearchUser from "../hooks/useSearchUser";
+import React,{ useEffect, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
+import useSearchUser from "../hooks/useSearchUser";
+import { useDispatch, useSelector } from "react-redux";
+import { setSearchResult } from "../utils/redux/chatSlice"; // Import Redux action
 
-const SearchBar = ({ onSearchResult, initialResult }) => {
+const SearchBar = React.memo(function SearchBar({
+  onSearchResult,
+  initialResult,
+}) {
   const searchUser = useRef("");
-  const prevValue = useRef("");
+  const dispatch = useDispatch();
+  const searchResult = useSelector((state) => state.chat.searchResult);
 
-  const { handleSearch, searchResult, setSearchResult } =
-    useSearchUser(searchUser);
+  const { handleSearch } = useSearchUser(searchUser);
 
-  const handleInputChange = (e) => {
-    const currentValue = e.target.value;
+  // Memoize handleInputChange to prevent re-creation
+  const handleInputChange = useCallback(
+    (e) => {
+      const currentValue = e.target.value;
 
-    if (prevValue.current !== "" && currentValue === "") {
-      setSearchResult(initialResult); // Reset to initial chat list
-    }
-    prevValue.current = currentValue;
-  };
+      if (currentValue === "") {
+        dispatch(setSearchResult(initialResult)); // Reset to initial chat list in Redux
+      }
+    },
+    [dispatch, initialResult]
+  );
 
+  // Update search results when `searchResult` changes
   useEffect(() => {
     onSearchResult(searchResult);
   }, [searchResult, onSearchResult]);
@@ -32,7 +41,7 @@ const SearchBar = ({ onSearchResult, initialResult }) => {
       onInput={handleInputChange}
     />
   );
-};
+});
 
 SearchBar.propTypes = {
   onSearchResult: PropTypes.func.isRequired,

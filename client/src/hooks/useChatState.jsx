@@ -6,6 +6,7 @@ import {
   setChats,
   addChat,
   removeChat,
+  setSearchResult,
 } from "../utils/redux/chatSlice";
 
 const useChatState = () => {
@@ -22,6 +23,7 @@ const useChatState = () => {
       dispatch(addChat(data));
     },
     removeChat: (chatId) => dispatch(removeChat(chatId)),
+    setSearchResult: (searchResult) => dispatch(setSearchResult(searchResult)),
   };
 };
 

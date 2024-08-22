@@ -227,7 +227,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             />
           ) : (
             <GroupChatModal
-              chat={selectedChat}
+              
               onClose={() => setShowProfile(false)}
             />
           ))}

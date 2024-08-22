@@ -370,94 +370,31 @@ const addParticipant = asyncHandler(async (req, res) => {
     }
 
     try {
-        const [updatedChat] = await Chat.aggregate([
-            // Stage 1: Match the chat by Id
-            {
-                $match: {
-                    _id: new mongoose.Types.ObjectId(chatId),
-                },
-            },
+        const chat = await Chat.findById(chatId)
 
-            // Stage 2: Check if the requester is an admin or not
-            {
-                $addFields: {
-                    isAdmin: {
-                        $in: [
-                            new mongoose.Types.ObjectId(req.user._id),
-                            "$admin",
-                        ],
-                    },
-                },
-            },
-
-            // Stage 3: Conditionally add the user to the participants array
-            {
-                $addFields: {
-                    participants: {
-                        $concatArrays: [
-                            "$participants",
-                            {
-                                $cond: [
-                                    {
-                                        $in: [
-                                            new mongoose.Types.ObjectId(userId),
-                                            "$participants",
-                                        ],
-                                    },
-                                    [],
-                                    [new mongoose.Types.ObjectId(userId)],
-                                ],
-                            },
-                        ],
-                    },
-                },
-            },
-
-            // Stage 4: Lookup to populate the fields
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "participants",
-                    foreignField: "_id",
-                    as: "participants",
-                },
-            },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "admin",
-                    foreignField: "_id",
-                    as: "adminDetails",
-                },
-            },
-
-            // Stage 5: Project the necessary fields (inclusion only)
-            {
-                $project: {
-                    "participants._id": 1,
-                    "participants.username": 1,
-                    "participants.avatar": 1,
-                    "adminDetails._id": 1,
-                    "adminDetails.username": 1,
-                    "adminDetails.avatar": 1,
-                    chatName: 1,
-                    isGroupChat: 1,
-                    lastMessage: 1,
-                    avatar: 1,
-                    isAdmin: 1,
-                },
-            },
-        ])
-
-        if (!updatedChat) {
-            throw new ApiError(400, "Unable to add participant")
+        if (!chat) {
+            throw new ApiError(400, "Chat not found")
         }
 
-        if (!updatedChat.isAdmin) {
+        if (!chat.admin.includes(req.user._id)) {
             throw new ApiError(
                 403,
                 "You are not authorized to add participants"
             )
+        }
+
+        if (!chat.participants.includes(userId)) {
+            chat.participants.push(userId)
+            await chat.save()
+        }
+
+        const updatedChat =
+            await Chat.findById(chatId).populate("participants admin")
+
+        // Map the participants field to users
+        const chatResponse = {
+            ...updatedChat.toObject(), // Convert the Mongoose document to a plain object
+            users: updatedChat.participants, // Rename participants to users
         }
 
         return res
@@ -465,7 +402,7 @@ const addParticipant = asyncHandler(async (req, res) => {
             .json(
                 new ApiResponse(
                     200,
-                    updatedChat,
+                    chatResponse,
                     "Participant added successfully"
                 )
             )
@@ -482,8 +419,14 @@ const removeFromGroup = asyncHandler(async (req, res) => {
     }
 
     try {
-        //check if the user is the admin
-        const removed = await Chat.findByIdAndUpdate(
+        // Fetch the user details before removing them
+        const userToRemove = await User.findById(userId).select("-password")
+        if (!userToRemove) {
+            throw new ApiError(404, "User not found")
+        }
+
+        // Remove the user from the participants array
+        const updatedChat = await Chat.findByIdAndUpdate(
             chatId,
             {
                 $pull: { participants: userId },
@@ -495,15 +438,17 @@ const removeFromGroup = asyncHandler(async (req, res) => {
             .populate("participants", "-password")
             .populate("admin", "-password")
 
-        if (!removed) {
+        if (!updatedChat) {
             throw new ApiError(400, "Unable to remove participant")
         }
+
+        // Return the updated chat and removed user information
         return res
             .status(200)
             .json(
                 new ApiResponse(
                     200,
-                    removed,
+                    { removedUser: userToRemove, chatId: updatedChat._id },
                     "Participant removed successfully"
                 )
             )

@@ -33,7 +33,7 @@ const ChatPage = () => {
     <div className="flex flex-col h-screen w-screen bg-black bg-opacity-90">
       <Heading user={user} />
       <div className="flex justify-between w-full h-[82%]">
-        <MyChats currUserId ={user._id}/>
+        <MyChats currUserId={user._id} />
         <ChatWindow />
       </div>
     </div>

@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 
-import  { useState } from "react";
+import { useState } from "react";
 import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
 import AvatarSelector from "./userProfile/AvatarSelector";
@@ -14,6 +14,7 @@ import { CrossButton } from "./userProfile/CrossButton";
 
 const Modal = ({ onClose }) => {
   const currentUser = useSelector((state) => state.user.user);
+
 
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [avatarEmpty, setAvatarEmpty] = useState(false);
@@ -59,7 +60,7 @@ const Modal = ({ onClose }) => {
     // Refresh the page
     window.location.reload();
   };
- 
+
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       {/* Overlay */}

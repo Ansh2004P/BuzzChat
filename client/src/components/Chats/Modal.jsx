@@ -1,22 +1,25 @@
 import { useRef, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { CrossButton } from "../userProfile/CrossButton";
-import SearchBar from "../SearchBar";
 import Participants from "./Participants";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { extractErrorMessage } from "../../utils/utils";
-import { useDispatch } from "react-redux";
-import { addChat } from "../../utils/redux/chatSlice";
+
 import useSearchUser from "../../hooks/useSearchUser";
+import { setSearchResult } from "../../utils/redux/groupSearchSlice";
+import { useDispatch, useSelector } from "react-redux";
+import useChatState from "../../hooks/useChatState";
+import { addChat, setChats } from "../../utils/redux/chatSlice";
 
 const Modal = ({ onClose }) => {
   const groupName = useRef("");
+  const dispatch = useDispatch();
   const [previewAvatar, setPreviewAvatar] = useState(null); // Use state for avatar preview
   const [avatar, setAvatar] = useState(null); // Use state for avatar
   const [participants, setParticipants] = useState(new Map());
   const [reqSend, setReqSend] = useState(false);
-  const dispatch = useDispatch();
+  const chats = useSelector((state) => state.chat.chats);
 
   useEffect(() => {
     const handleEscape = (event) => {
@@ -37,9 +40,8 @@ const Modal = ({ onClose }) => {
 
   const searchUser = useRef("");
   const prevValue = useRef("");
-
-  const { handleSearch, searchResult, setSearchResult } =
-    useSearchUser(searchUser);
+  const searchResult = useSelector((state) => state.groupSearch.searchResult);
+  const { handleSearch } = useSearchUser(searchUser);
 
   const handleInputChange = (e) => {
     const currentValue = e.target.value;
@@ -98,7 +100,8 @@ const Modal = ({ onClose }) => {
         }
       );
 
-      console.log(response.data);
+      // console.log(response.data.data);
+      dispatch(setChats([response.data.data, ...chats]));
       handleClose();
 
       setReqSend(false);

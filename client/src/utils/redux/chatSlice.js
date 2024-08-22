@@ -5,6 +5,7 @@ const initialState = {
   selectedChat: null,
   notification: [],
   chats: [],
+  searchResult: [],
 };
 
 const chatSlice = createSlice({
@@ -22,11 +23,16 @@ const chatSlice = createSlice({
       state.chats = action.payload;
     },
     addChat: (state, action) => {
-      // Append the new chat to the state array
-      state.push(action.payload);
+      state.chats = [...state.chats, action.payload];
     },
-    removeChat: (state, payload) => {
-      state.chats = state.chats.filter((chat) => chat._id !== payload);
+    removeChat: (state, action) => {
+      console.log(action.payload);
+      console.log("chats", state.chats);
+      // Remove the chat with the matching _id
+      state.chats = state.chats.filter((chat) => chat._id !== action.payload);
+    },
+    setSearchResult: (state, action) => {
+      state.searchResult = action.payload; // Add searchResult reducer
     },
   },
 });
@@ -37,6 +43,7 @@ export const {
   setChats,
   addChat,
   removeChat,
+  setSearchResult,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

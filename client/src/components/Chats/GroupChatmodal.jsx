@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -7,13 +7,21 @@ import { CrossButton } from "../userProfile/CrossButton";
 import { formatTimestamp } from "../../utils/utils";
 import Scrollbars from "react-custom-scrollbars";
 import { UserItem, withAdminLabel } from "./UserItem";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import useSearchUser from "../../hooks/useSearchUser";
+import {
+  addParticipant,
+  clearSearchResult,
+  setParticipants,
+} from "../../utils/redux/groupSearchSlice";
+import useChatState from "../../hooks/useChatState";
+import { removeChat } from "../../utils/redux/chatSlice";
 
 // Wrap UserItem with withAdminLabel
 const UserItemWithAdmin = withAdminLabel(UserItem);
 
-const GroupChatModal = ({ onClose, chat }) => {
+const GroupChatModal = ({ onClose }) => {
+  const chat = useSelector((state) => state.chat.selectedChat);
   const [zoom, setZoom] = useState(false);
   const [avatar, setAvatar] = useState(chat.avatar);
   const [isEditing, setIsEditing] = useState(false);
@@ -24,20 +32,32 @@ const GroupChatModal = ({ onClose, chat }) => {
   const searchUser = useRef("");
   const currentUser = useSelector((state) => state.user.user);
   const isAdmin = chat.admin.includes(currentUser._id);
+  const { setSelectedChat } = useChatState();
+  const dispatch = useDispatch();
   // console.log(chat);
+  const searchResult = useSelector((state) => state.groupSearch.searchResult);
+  const participants = useSelector((state) => state.groupSearch.participants);
 
   // Get search user hook
-  const { handleSearch, searchResult, setSearchResult } =
-    useSearchUser(searchUser);
-
+  const { handleSearch } = useSearchUser(searchUser);
+  console.log("List", chat);
   // Filter out already existing users from search results
-  const filteredSearchResults = searchResult.filter(
+  const temp = searchResult.filter(
     (user) => !users.some((groupUser) => groupUser._id === user._id)
   );
+  const filteredSearchResults = temp.filter(
+    (user) =>
+      !user.isGroupChat &&
+      !users.some((groupUser) => groupUser._id === user._id)
+  );
+
+  useEffect(() => {
+    dispatch(setParticipants([...users]));
+  }, [users, dispatch]);
 
   const handleEditClick = () => setIsEditing(true);
 
-  const sortedUsers = [...users].sort((a, b) => {
+  const sortedUsers = [...participants].sort((a, b) => {
     const isAAdmin = chat.admin.includes(a._id);
     const isBAdmin = chat.admin.includes(b._id);
     return isBAdmin - isAAdmin; // Admins first
@@ -133,14 +153,32 @@ const GroupChatModal = ({ onClose, chat }) => {
         { withCredentials: true }
       );
 
+      console.log(data);
+
       toast.success(data.message, {
         position: "bottom-center",
         autoClose: 5000,
       });
 
+      const removedUserId = data.data.removedUser._id;
+      console.log("Chats", chat);
+
+      // Filter the chats
+      const filteredUsers = chat.users.filter(
+        (user) => user._id !== removedUserId
+      );
+
+      // Update the selected chat with the filtered users
+      const updatedChat = {
+        ...chat,
+        users: filteredUsers,
+      };
+
+      setSelectedChat(updatedChat);
       // Update the users state to reflect the removed user
       setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
     } catch (error) {
+      console.log(error);
       const errorMessage = error.response?.data?.message || "Error occurred";
       toast.error(errorMessage, {
         position: "bottom-center",
@@ -156,20 +194,17 @@ const GroupChatModal = ({ onClose, chat }) => {
         { userId, chatId },
         { withCredentials: true }
       );
-
       toast.success(data.message, {
         position: "bottom-center",
         autoClose: 5000,
       });
-      console.log(data);
-      // Update the users state to reflect the added user
-      setUsers((prevUsers) => [
-        ...prevUsers,
-        searchResult.find((user) => user._id === userId),
-      ]);
+
+      // Find the newly added user from search results
+      const addedUser = searchResult.find((user) => user._id === userId);
+      setSelectedChat({ ...chat, users: data.data.participants });
+      dispatch(addParticipant(addedUser));
     } catch (error) {
-      // const errorMessage = error.response?.data?.message || "Error occurred";
-      toast.error(error.toString(), {
+      toast.error(error.response?.data?.message || "Error occurred", {
         position: "bottom-center",
         autoClose: 5000,
       });
@@ -177,7 +212,7 @@ const GroupChatModal = ({ onClose, chat }) => {
   };
 
   const handleLeaveGroup = async (chatId) => {
-    console.log(chatId);
+    // console.log(chatId);
     try {
       const { data } = await axios.put(
         `${import.meta.env.VITE_SERVER_URI}/chat/leaveGroup`,
@@ -185,7 +220,8 @@ const GroupChatModal = ({ onClose, chat }) => {
         { withCredentials: true }
       );
       console.log(data);
-
+      removeChat(chat._id);
+      setSelectedChat(null);
       toast.success(data.message, {
         position: "bottom-center",
         autoClose: 5000,
@@ -201,7 +237,13 @@ const GroupChatModal = ({ onClose, chat }) => {
       });
     }
   };
+  // console.log("Remove", chat);
 
+  // console.log(chat);
+
+  // console.log("hi",filteredSearchResults);
+  // console.log("hi", sortedUsers);
+  // console.log("hi", searchOn);
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       {/* Overlay */}
@@ -299,7 +341,10 @@ const GroupChatModal = ({ onClose, chat }) => {
                 />
                 <button
                   type="button"
-                  onClick={() => setSearchOn(false)}
+                  onClick={() => {
+                    setSearchOn(false);
+                    dispatch(clearSearchResult());
+                  }}
                   className="absolute top-1/2 mt-2 right-2 transform -translate-y-1/2"
                 >
                   <XMarkIcon className="w-5 h-5 text-gray-400" />
@@ -325,19 +370,27 @@ const GroupChatModal = ({ onClose, chat }) => {
 
         {!searchOn && (
           <div className="flex flex-col mt-4">
-            {sortedUsers.length > 0 ? (
-              sortedUsers.map((user) => (
-                <UserItemWithAdmin
-                  key={user._id}
-                  user={user}
-                  chat={chat}
-                  onRemoveUser={() => handleRemoveUser(user._id, chat._id)}
-                  dropdownContent={"Remove from group"}
-                />
-              ))
-            ) : (
-              <p className="text-gray-500">No users in the group.</p>
-            )}
+            <Scrollbars
+              autoHide
+              autoHideTimeout={1000}
+              autoHideDuration={200}
+              style={{ height: "300px" }}
+            >
+              {sortedUsers.length > 0 ? (
+                sortedUsers.map((user) => (
+                  <UserItemWithAdmin
+                    key={user._id}
+                    user={user}
+                    chat={chat}
+                    onRemoveUser={() => handleRemoveUser(user._id, chat._id)}
+                    dropdownContent={"Remove from group"}
+                  />
+                ))
+              ) : (
+                <p className="text-gray-500">No users in the group.</p>
+              )}
+            </Scrollbars>
+
             <hr className="h-px mt-2 bg-stone-200 border-0 dark:bg-stone-600" />
             <button
               className="w-full bg-red-700 my-2 rounded-xl h-fit p-2"
@@ -354,20 +407,6 @@ const GroupChatModal = ({ onClose, chat }) => {
 
 GroupChatModal.propTypes = {
   onClose: PropTypes.func.isRequired,
-  chat: PropTypes.shape({
-    _id: PropTypes.string.isRequired,
-    avatar: PropTypes.string.isRequired,
-    chatName: PropTypes.string.isRequired,
-    users: PropTypes.arrayOf(
-      PropTypes.shape({
-        _id: PropTypes.string.isRequired,
-        username: PropTypes.string.isRequired,
-        avatar: PropTypes.string.isRequired,
-      })
-    ).isRequired,
-    admin: PropTypes.arrayOf(PropTypes.string).isRequired,
-    createdAt: PropTypes.string.isRequired,
-  }).isRequired,
 };
 
 export default GroupChatModal;

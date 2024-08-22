@@ -11,6 +11,7 @@ const useChatScreen = () => {
   const [selfTyping, setSelfTyping] = useState(false); // To track if the current user is typing
   const [localSearchQuery, setLocalSearchQuery] = useState(""); // For local search functionality
 
+
   return {
     messages,
     setMessages,
