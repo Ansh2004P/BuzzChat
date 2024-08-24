@@ -20,7 +20,7 @@ const MyChats = ({ currUserId }) => {
         }
       );
 
-      // console.log(data);
+      // console.log(data.data);
 
       const uniqueParticipants = {};
 
@@ -32,11 +32,17 @@ const MyChats = ({ currUserId }) => {
             avatar: element.avatar,
             isGroupChat: true,
             participants: element.participants,
+            lastMessage: element.lastMessage,
           };
         } else {
           element.participants.forEach((participant) => {
+            // console.log(element.lastMessage);
+            // console.log("participant single chat", participant);
             if (participant._id !== currUserId) {
-              uniqueParticipants[participant._id] = participant;
+              uniqueParticipants[participant._id] = {
+                ...participant,
+                // lastMessage: element.lastMessage,
+              };
             }
           });
         }
@@ -45,8 +51,8 @@ const MyChats = ({ currUserId }) => {
       const uniqueParticipantsArray = Object.values(uniqueParticipants);
       // console.log(uniqueParticipantsArray);
 
-      setChats(uniqueParticipantsArray); // Update the initial chat list in Redux
-      setSearchResult(uniqueParticipantsArray); // Update search results in Redux
+      setChats(uniqueParticipantsArray);
+      setSearchResult(uniqueParticipantsArray); 
     } catch (error) {
       toast.error("Error fetching chats", {
         position: "bottom-center",
@@ -58,6 +64,7 @@ const MyChats = ({ currUserId }) => {
     }
   }, [currUserId, setChats, setSearchResult]);
 
+  // console.log(chats);
   useEffect(() => {
     fetchChat();
   }, []);

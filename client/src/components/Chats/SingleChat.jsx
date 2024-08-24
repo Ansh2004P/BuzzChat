@@ -23,7 +23,8 @@ var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const currentUser = useGetCurrentUser();
-  const { selectedChat, notification, setNotification } = useChatState();
+  const { updateLastMessage, selectedChat, notification, setNotification } =
+    useChatState();
   const {
     newMessage,
     istyping,
@@ -141,6 +142,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           console.log("Message sent", res.data);
           socket.emit("messageRecieved", res.data.data);
           setMessages([res.data.data, ...messages]);
+          updateLastMessage(selectedChat._id, res.data.data);
 
           // Clear the input field
           newMessage.current.value = "";
@@ -226,10 +228,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               onclose={() => setShowProfile(false)}
             />
           ) : (
-            <GroupChatModal
-              
-              onClose={() => setShowProfile(false)}
-            />
+            <GroupChatModal onClose={() => setShowProfile(false)} />
           ))}
       </div>
 

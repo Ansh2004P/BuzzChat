@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useCallback } from "react";
-import { setSearchResult } from "../utils/redux/groupSearchSlice";
+import { setSearchResult } from "../utils/redux/chatSlice";
 
 const useSearchUser = (searchUserRef) => {
   const dispatch = useDispatch();
@@ -22,6 +22,7 @@ const useSearchUser = (searchUserRef) => {
               withCredentials: true,
             }
           );
+          console.log("chat", response.data.data);
 
           dispatch(setSearchResult(response.data.data)); // Update search results in Redux
         } catch (err) {

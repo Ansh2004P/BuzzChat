@@ -1,4 +1,4 @@
-import React,{ useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
 import useSearchUser from "../hooks/useSearchUser";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,7 +11,7 @@ const SearchBar = React.memo(function SearchBar({
   const searchUser = useRef("");
   const dispatch = useDispatch();
   const searchResult = useSelector((state) => state.chat.searchResult);
-
+  // console.log("searchResult", searchResult);
   const { handleSearch } = useSearchUser(searchUser);
 
   // Memoize handleInputChange to prevent re-creation
@@ -20,7 +20,9 @@ const SearchBar = React.memo(function SearchBar({
       const currentValue = e.target.value;
 
       if (currentValue === "") {
-        dispatch(setSearchResult(initialResult)); // Reset to initial chat list in Redux
+        if (initialResult.length > 0) {
+          dispatch(setSearchResult(initialResult)); // Reset to initial chat list in Redux
+        }
       }
     },
     [dispatch, initialResult]
@@ -30,7 +32,7 @@ const SearchBar = React.memo(function SearchBar({
   useEffect(() => {
     onSearchResult(searchResult);
   }, [searchResult, onSearchResult]);
-
+  // console.log("searchResult1", searchResult);
   return (
     <input
       ref={searchUser}
