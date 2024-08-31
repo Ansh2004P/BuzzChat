@@ -94,7 +94,6 @@ export const {
   removeChat,
   setSearchResult,
   updateLastMessage,
-  updateLastMessage,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;
