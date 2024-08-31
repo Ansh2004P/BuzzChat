@@ -192,3 +192,49 @@ const ChatList = () => {
 };
 
 export default ChatList;
+
+// {
+//   "_id": "66ae84a166fc2c3aa689e160",
+//   "username": "aasfd",
+//   "email": "anshkpatelasdf1@gmail.com",
+//   "avatar": "http://res.cloudinary.com/dhxfeld0b/image/upload/v1722713248/BuzzChat/if0jcbxj1z8ghnrgtcbx.jpg",
+//   "createdAt": "2024-08-03T19:27:29.508Z",
+//   "updatedAt": "2024-08-03T19:27:29.508Z",
+//   "__v": 0
+// },
+
+// {
+//   "_id": "66c9ba12c12efd95741a1d79",
+//   "user": [
+//       {
+//           "_id": "66ae84a166fc2c3aa689e160",
+//           "username": "aasfd",
+//           "email": "anshkpatelasdf1@gmail.com",
+//           "avatar": "http://res.cloudinary.com/dhxfeld0b/image/upload/v1722713248/BuzzChat/if0jcbxj1z8ghnrgtcbx.jpg",
+//           "createdAt": "2024-08-03T19:27:29.508Z",
+//           "updatedAt": "2024-08-03T19:27:29.508Z",
+//           "__v": 0
+//       },
+//       {
+//           "_id": "66c99b9bb32806ccb614175e",
+//           "username": "pookiee 2.0",
+//           "email": "xyz@234.com",
+//           "avatar": "http://res.cloudinary.com/dhxfeld0b/image/upload/v1724488601/BuzzChat/tzzqcu6qwmwtcn13hsqh.jpg",
+//           "createdAt": "2024-08-24T08:36:43.645Z",
+//           "updatedAt": "2024-08-24T10:33:31.260Z",
+//           "__v": 0
+//       }
+//   ],
+//   "isGroupChat": false
+// }
+
+// {
+//   "_id": "66b0fd7b2862c0227f02670c",
+//   "username": "one12321",
+//   "email": "one.abc.com",
+//   "avatar": "http://res.cloudinary.com/dhxfeld0b/image/upload/v1722875255/BuzzChat/z8loycpdiq8yqwobaah6.jpg",
+//   "createdAt": "2024-08-05T16:27:39.736Z",
+//   "updatedAt": "2024-08-05T16:27:45.295Z",
+//   "__v": 0,
+//   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NmIwZmQ3YjI4NjJjMDIyN2YwMjY3MGMiLCJpYXQiOjE3MjI4NzUyNjUsImV4cCI6MTcyMzczOTI2NX0.IE1yHuc2rRU6pjcoRWMzkg6gzqqT0NuGeVQFVHUBsTQ"
+// }

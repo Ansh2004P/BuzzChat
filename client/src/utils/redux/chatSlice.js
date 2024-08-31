@@ -22,15 +22,22 @@ const chatSlice = createSlice({
     setChats: (state, action) => {
       // console.log("Previous state:", JSON.stringify(state.chats, null, 2));
       // console.log("Action payload:", JSON.stringify(action.payload, null, 2));
+      // console.log("Previous state:", JSON.stringify(state.chats, null, 2));
+      // console.log("Action payload:", JSON.stringify(action.payload, null, 2));
       state.chats = action.payload;
+      // console.log("Updated state:", JSON.stringify(state.chats, null, 2));
       // console.log("Updated state:", JSON.stringify(state.chats, null, 2));
     },
     addChat: (state, action) => {
       // console.log("Previous state:", JSON.stringify(state.chats, null, 2));
       // console.log("Action payload:", JSON.stringify(action.payload, null, 2));
+      // console.log("Previous state:", JSON.stringify(state.chats, null, 2));
+      // console.log("Action payload:", JSON.stringify(action.payload, null, 2));
       state.chats = [...state.chats, action.payload];
       // console.log("Updated state:", JSON.stringify(state.chats, null, 2));
+      // console.log("Updated state:", JSON.stringify(state.chats, null, 2));
     },
+
 
     removeChat: (state, action) => {
       console.log(action.payload);
@@ -86,6 +93,7 @@ export const {
   addChat,
   removeChat,
   setSearchResult,
+  updateLastMessage,
   updateLastMessage,
 } = chatSlice.actions;
 
