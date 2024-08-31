@@ -23,7 +23,8 @@ var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const currentUser = useGetCurrentUser();
-  const { selectedChat, notification, setNotification } = useChatState();
+  const { updateLastMessage, selectedChat, notification, setNotification } =
+    useChatState();
   const {
     newMessage,
     istyping,
@@ -54,27 +55,16 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     socket.on("connected", () => setSocketConnected(true));
 
     socket.on("messageRecieved", (newMessage) => {
+      // Update lastMessage in chat state
+      updateLastMessage(
+        selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId,
+        newMessage
+      );
       setMessages((prevMessages) => {
         return [newMessage, ...prevMessages];
       });
     });
   }, []);
-
-  useEffect(() => {
-    socket.on("messageRecieved", (newMessageRecieved) => {
-      if (
-        !selectedChatCompare || // if chat is not selected or doesn't match current chat
-        selectedChatCompare._id !== newMessageRecieved.chat._id
-      ) {
-        if (!notification.includes(newMessageRecieved)) {
-          setNotification([newMessageRecieved, ...notification]);
-          setFetchAgain(!fetchAgain);
-        }
-      } else {
-        setMessages([...messages, newMessageRecieved]);
-      }
-    });
-  });
 
   const defaultOptions = useLottieOptions();
 
@@ -92,14 +82,19 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
       const { data } = await axios.get(
         ` ${import.meta.env.VITE_SERVER_URI}/message/${
-          selectedChat._id
-        }?chatId=${selectedChat._id}`,
+          selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId
+        }?chatId=${
+          selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId
+        }`,
         config
       );
       setMessages(data.data);
       setLoading(false);
 
-      socket.emit("joinChat", selectedChat._id);
+      socket.emit(
+        "joinChat",
+        selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId
+      );
     } catch (error) {
       toast.error("Failed to fetch messages", {
         position: "bottom-center",
@@ -120,7 +115,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         (e.key === "Enter" && newMessage.current.value) ||
         e.type === "click"
       ) {
-        socket.emit("stopTyping", selectedChat._id);
+        socket.emit(
+          "stopTyping",
+          selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId
+        );
         try {
           const config = { withCredentials: true };
           const formData = new FormData();
@@ -132,23 +130,33 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
           const res = await axios.post(
             `${import.meta.env.VITE_SERVER_URI}/message/${
-              selectedChat?._id
-            }?chatId=${selectedChat?._id}`,
+              selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId
+            }?chatId=${
+              selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId
+            }`,
             formData,
             config
           );
 
-          console.log("Message sent", res.data);
+          console.log("Message sent", res.data.data);
           socket.emit("messageRecieved", res.data.data);
           setMessages([res.data.data, ...messages]);
+          updateLastMessage(
+            selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId,
+            res.data.data
+          );
 
           // Clear the input field
           newMessage.current.value = "";
 
           // Reset typing state
           setTyping(false);
-          socket.emit("stopTyping", selectedChat._id);
+          socket.emit(
+            "stopTyping",
+            selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId
+          );
         } catch (error) {
+          console.log(error);
           toast.error("Failed to send message", {
             position: "bottom-center",
             autoClose: 5000,
@@ -162,7 +170,11 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         }
       }
     },
-    [attachedFiles, messages, selectedChat?._id]
+    [
+      attachedFiles,
+      messages,
+      selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId,
+    ]
   );
 
   const typingHandler = () => {
@@ -172,11 +184,17 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     if (messageContent) {
       if (!typing) {
         setTyping(true);
-        socket.emit("typing", selectedChat._id);
+        socket.emit(
+          "typing",
+          selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId
+        );
       }
     } else if (typing) {
       setTyping(false);
-      socket.emit("stopTyping", selectedChat._id);
+      socket.emit(
+        "stopTyping",
+        selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId
+      );
     }
   };
 
@@ -226,10 +244,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               onclose={() => setShowProfile(false)}
             />
           ) : (
-            <GroupChatModal
-              
-              onClose={() => setShowProfile(false)}
-            />
+            <GroupChatModal onClose={() => setShowProfile(false)} />
           ))}
       </div>
 

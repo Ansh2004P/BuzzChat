@@ -8,7 +8,6 @@ import { formatTimestamp } from "../../utils/utils";
 import Scrollbars from "react-custom-scrollbars";
 import { UserItem, withAdminLabel } from "./UserItem";
 import { useDispatch, useSelector } from "react-redux";
-import useSearchUser from "../../hooks/useSearchUser";
 import {
   addParticipant,
   clearSearchResult,
@@ -16,6 +15,7 @@ import {
 } from "../../utils/redux/groupSearchSlice";
 import useChatState from "../../hooks/useChatState";
 import { removeChat } from "../../utils/redux/chatSlice";
+import useGroupAddParticipant from "../../hooks/Chat/useGroupAddParticipant";
 
 // Wrap UserItem with withAdminLabel
 const UserItemWithAdmin = withAdminLabel(UserItem);
@@ -39,8 +39,8 @@ const GroupChatModal = ({ onClose }) => {
   const participants = useSelector((state) => state.groupSearch.participants);
 
   // Get search user hook
-  const { handleSearch } = useSearchUser(searchUser);
-  console.log("List", chat);
+  const { handleSearch } = useGroupAddParticipant(searchUser);
+  // console.log("List", chat);
   // Filter out already existing users from search results
   const temp = searchResult.filter(
     (user) => !users.some((groupUser) => groupUser._id === user._id)
@@ -153,7 +153,7 @@ const GroupChatModal = ({ onClose }) => {
         { withCredentials: true }
       );
 
-      console.log(data);
+      // console.log(data);
 
       toast.success(data.message, {
         position: "bottom-center",
@@ -161,7 +161,7 @@ const GroupChatModal = ({ onClose }) => {
       });
 
       const removedUserId = data.data.removedUser._id;
-      console.log("Chats", chat);
+      // console.log("Chats", chat);
 
       // Filter the chats
       const filteredUsers = chat.users.filter(
@@ -178,7 +178,7 @@ const GroupChatModal = ({ onClose }) => {
       // Update the users state to reflect the removed user
       setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       const errorMessage = error.response?.data?.message || "Error occurred";
       toast.error(errorMessage, {
         position: "bottom-center",
@@ -219,7 +219,7 @@ const GroupChatModal = ({ onClose }) => {
         { chatId },
         { withCredentials: true }
       );
-      console.log(data);
+      // console.log(data);
       removeChat(chat._id);
       setSelectedChat(null);
       toast.success(data.message, {
@@ -229,7 +229,7 @@ const GroupChatModal = ({ onClose }) => {
 
       onClose();
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       const errorMessage = error.response?.data?.message || "Error occurred";
       toast.error(errorMessage, {
         position: "bottom-center",
@@ -237,13 +237,7 @@ const GroupChatModal = ({ onClose }) => {
       });
     }
   };
-  // console.log("Remove", chat);
 
-  // console.log(chat);
-
-  // console.log("hi",filteredSearchResults);
-  // console.log("hi", sortedUsers);
-  // console.log("hi", searchOn);
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       {/* Overlay */}

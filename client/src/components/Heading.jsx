@@ -14,7 +14,6 @@ const Heading = ({ user }) => {
         </span>
       </div>
       <div className="w-[50%] flex justify-end py-3 mr-5">
-        <NotificationBell />
         <UserAvatar avatar={user.avatar} />
       </div>
     </div>

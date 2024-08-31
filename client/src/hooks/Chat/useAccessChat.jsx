@@ -15,7 +15,7 @@ const accessChat = async ({userId, isGroupChat}) => {
     { userId, isGroupChat },
     config
   );
-  // console.log(res.data.data);
+  // console.log("response", res.data.data);
   return res.data.data;
 };
 

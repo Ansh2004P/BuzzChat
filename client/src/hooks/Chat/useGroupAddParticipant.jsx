@@ -1,11 +1,11 @@
-// src/hooks/useSearchUser.js
+// src/hooks/useGroupAddParticipant.js
 import { useDispatch } from "react-redux";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useCallback } from "react";
-import { setSearchResult } from "../utils/redux/chatSlice";
+import { setSearchResult } from "../../utils/redux/groupSearchSlice";
 
-const useSearchUser = (searchUserRef) => {
+const useGroupAddParticipant = (searchUserRef) => {
   const dispatch = useDispatch();
 
   // Memoize handleSearch function to prevent re-creation on each render
@@ -46,4 +46,4 @@ const useSearchUser = (searchUserRef) => {
   return { handleSearch };
 };
 
-export default useSearchUser;
+export default useGroupAddParticipant;
