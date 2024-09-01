@@ -176,7 +176,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId,
     ]
   );
-
+  // console.log(currentUser)
   const typingHandler = () => {
     if (!socketConnected) return;
 
@@ -221,9 +221,15 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             : user?.[0]?.username || "Default"}
         </span>
         <div className="flex w-fit space-x-2 mr-4 p-2">
-          <VoiceCall />
-          <VideoCall />
-          <div onClick={handleShowProfile} className="ml-10 px-2">
+          {/* <VoiceCall />
+          <VideoCall
+            userId={currentUser.user._id}
+            remotePeerId={selectedChat._id}
+          /> */}
+          <div
+            onClick={handleShowProfile}
+            className="ml-10 px-2 cursor-pointer"
+          >
             <ChatInfo
               avatar={
                 selectedChat.isGroupChat

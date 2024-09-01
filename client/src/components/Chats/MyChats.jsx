@@ -71,7 +71,7 @@ const MyChats = ({ currUserId }) => {
     fetchChat();
   }, []);
 
-  console.log("Chats", chats);
+  // console.log("Chats", chats);
 
   return (
     <div className="bg-neutral-800 rounded-2xl w-[30%] h-[100%] p-2 ml-4 text-white flex flex-col">

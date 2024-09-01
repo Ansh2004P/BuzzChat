@@ -21,8 +21,8 @@ const ChatModal = ({ onclose, currUser }) => {
     setZoom(!zoom);
   };
 
-  console.log("currentUser", currUser);
-  console.log("user", user[0]);
+  // console.log("currentUser", currUser);
+  // console.log("user", user[0]);
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 h-screen w-screen">
       {/* Overlay */}
