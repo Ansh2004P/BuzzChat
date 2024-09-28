@@ -3,17 +3,33 @@ import connectDB from "./db/connect.js"
 import { app, corsOptions } from "./app.js"
 import { Server } from "socket.io"
 import { PeerServer } from "peer"
+import helmet from "helmet"
+import compression from "compression"
+import rateLimit from "express-rate-limit"
 
 dotenv.config({ path: "./.env" })
 
 const port = process.env.PORT || 8000
 const peerPort = process.env.PEER_PORT || 9000
 
+// Set rate limiting (adjust to your needs)
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+})
+
+// Apply rate limiting and security headers middleware
+app.use(limiter)
+app.use(helmet()) // Secure HTTP headers
+app.use(compression()) // Compress response bodies
+
 let server
 connectDB()
     .then(() => {
         server = app.listen(port, () => {
-            console.log(`⚙️ Server is running at port: ${port}`)
+            console.log(
+                `⚙️ Server is running at port: ${port} in ${process.env.NODE_ENV} mode`
+            )
         })
 
         // Socket.io setup
@@ -22,14 +38,16 @@ connectDB()
             cors: corsOptions,
         })
 
-        // PeerJs setup
+        // PeerJs setup (for video/audio communication)
         const peerServer = PeerServer({
             port: peerPort,
             path: "/peerjs",
+            proxied: true, // Ensure this if you're behind a proxy (like Vercel)
         })
 
         app.use("/peerjs", peerServer)
 
+        // Handle socket connections
         io.on("connection", (socket) => {
             console.log("Connected to socket.io")
 
@@ -41,7 +59,7 @@ connectDB()
                     socket.emit("connected")
                     console.log(`User setup complete for: ${userData._id}`)
                 } catch (error) {
-                    console.error(error.message)
+                    console.error(`Error in setup: ${error.message}`)
                 }
             })
 
@@ -51,7 +69,7 @@ connectDB()
                     socket.join(room)
                     console.log(`User Joined Room: ${room}`)
                 } catch (error) {
-                    console.error(error.message)
+                    console.error(`Error in joinChat: ${error.message}`)
                 }
             })
 
@@ -62,7 +80,7 @@ connectDB()
                     socket.in(room).emit("typing")
                     console.log(`User is typing in room: ${room}`)
                 } catch (error) {
-                    console.error(error.message)
+                    console.error(`Error in typing: ${error.message}`)
                 }
             })
 
@@ -75,7 +93,7 @@ connectDB()
                     socket.in(room).emit("stopTyping")
                     console.log(`User stopped typing in room: ${room}`)
                 } catch (error) {
-                    console.error(error.message)
+                    console.error(`Error in stopTyping: ${error.message}`)
                 }
             })
 
@@ -91,10 +109,11 @@ connectDB()
                         .emit("messageRecieved", newMessageRecieved)
                     console.log(`Message received in room: ${chatId}`)
                 } catch (error) {
-                    console.error(error.message)
+                    console.error(`Error in messageRecieved: ${error.message}`)
                 }
             })
 
+            // Handling video/audio call events
             socket.on("callUser", ({ userToCall, from, signal }) => {
                 io.to(userToCall).emit("incomingCall", { signal, from })
             })
@@ -103,6 +122,7 @@ connectDB()
                 io.to(data.to).emit("callAccepted", data.signal)
             })
 
+            // User disconnect event
             socket.on("disconnect", () => {
                 console.log("User Disconnected")
             })
@@ -112,6 +132,7 @@ connectDB()
         console.error(`❌ MongoDB connection failed: ${error.message}`)
     })
 
+// Gracefully handle shutdown
 process.on("SIGINT", () => {
     console.log("Shutting down gracefully...")
     if (server) {
@@ -120,4 +141,12 @@ process.on("SIGINT", () => {
             process.exit(0)
         })
     }
+})
+
+process.on("unhandledRejection", (err) => {
+    console.error(`Unhandled rejection: ${err.name}, ${err.message}`)
+    console.log("Shutting down due to unhandled promise rejection...")
+    server.close(() => {
+        process.exit(1)
+    })
 })
