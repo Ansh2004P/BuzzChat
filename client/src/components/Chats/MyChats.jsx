@@ -6,7 +6,7 @@ import axios from "axios";
 import PropTypes from "prop-types";
 import { toast } from "react-toastify";
 import useChatState from "../../hooks/useChatState";
-import { VITE_SERVER_URI } from "../../utils/utils";
+
 
 const MyChats = ({ currUserId }) => {
   const { chats, setChats, setSearchResult } = useChatState();
@@ -15,7 +15,7 @@ const MyChats = ({ currUserId }) => {
     // console.log("Fetching chats");
     try {
       const { data } = await axios.get(
-        `${VITE_SERVER_URI}/chat`,
+        `${import.meta.env.VITE_SERVER_URI}/chat`,
         {
           withCredentials: true,
         }

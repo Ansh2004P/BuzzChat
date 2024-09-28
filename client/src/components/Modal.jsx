@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import AvatarSelector from "./userProfile/AvatarSelector";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { extractErrorMessage, VITE_SERVER_URI } from "../utils/utils";
+import { extractErrorMessage} from "../utils/utils";
 import UpdateName from "./userProfile/UpdateName";
 import DeleteUser from "./userProfile/DeleteUser";
 import Logout from "./Logout";
@@ -32,7 +32,7 @@ const Modal = ({ onClose }) => {
   const handleDeleteAvatar = async () => {
     try {
       const response = await axios.delete(
-        `${VITE_SERVER_URI}/user/delete-avatar`,
+        `${import.meta.env.VITE_SERVER_URI}/user/delete-avatar`,
         {
           withCredentials: true,
         }

@@ -1,11 +1,11 @@
 import axios from "axios";
 import React, { useEffect } from "react";
-import { VITE_SERVER_URI } from "../utils/utils";
+
 
 const useInitHook = () => {
   useEffect(() => {
     axios
-      .get(`${VITE_SERVER_URI}/user/check-refresh-token`, {
+      .get(`${import.meta.env.VITE_SERVER_URI}/user/check-refresh-token`, {
         withCredentials: true,
       })
       .then((response) => {

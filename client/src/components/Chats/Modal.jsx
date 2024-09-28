@@ -4,7 +4,7 @@ import { CrossButton } from "../userProfile/CrossButton";
 import Participants from "./Participants";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { extractErrorMessage, VITE_SERVER_URI } from "../../utils/utils";
+import { extractErrorMessage} from "../../utils/utils";
 
 import useSearchUser from "../../hooks/useSearchUser";
 import { setgroupSearchResult } from "../../utils/redux/groupSearchSlice";
@@ -108,7 +108,7 @@ const Modal = ({ onClose }) => {
 
     try {
       const response = await axios.post(
-        `${VITE_SERVER_URI}/chat/group`,
+        `${import.meta.env.VITE_SERVER_URI}/chat/group`,
         formData,
         { withCredentials: true }
       );

@@ -4,7 +4,6 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useCallback } from "react";
 import { setgroupSearchResult } from "../../utils/redux/groupSearchSlice";
-import { VITE_SERVER_URI } from "../../utils/utils";
 
 const useGroupAddParticipant = (searchUserRef) => {
   const dispatch = useDispatch();
@@ -15,7 +14,7 @@ const useGroupAddParticipant = (searchUserRef) => {
       if (e.key === "Enter") {
         try {
           const response = await axios.get(
-            `${VITE_SERVER_URI}/chat/search-user`,
+            `${import.meta.env.VITE_SERVER_URI}/chat/search-user`,
             {
               params: {
                 search: searchUserRef.current.value,

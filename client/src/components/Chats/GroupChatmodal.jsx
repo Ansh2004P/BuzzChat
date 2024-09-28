@@ -4,7 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { PencilIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { CrossButton } from "../userProfile/CrossButton";
-import { formatTimestamp, VITE_SERVER_URI } from "../../utils/utils";
+import { formatTimestamp } from "../../utils/utils";
 import Scrollbars from "react-custom-scrollbars";
 import { UserItem, withAdminLabel } from "./UserItem";
 import { useDispatch, useSelector } from "react-redux";
@@ -75,7 +75,7 @@ const GroupChatModal = ({ onClose }) => {
     }
     try {
       const response = await axios.put(
-        `${VITE_SERVER_URI}/chat/rename`,
+        `${import.meta.env.VITE_SERVER_URI}/chat/rename`,
         { chatName: tempName, chatId: chat._id },
         { withCredentials: true }
       );
@@ -123,7 +123,7 @@ const GroupChatModal = ({ onClose }) => {
 
     try {
       const response = await axios.put(
-        `${VITE_SERVER_URI}/chat/update-avatar`,
+        `${import.meta.env.VITE_SERVER_URI}/chat/update-avatar`,
         formData,
         {
           headers: {
@@ -150,7 +150,7 @@ const GroupChatModal = ({ onClose }) => {
   const handleRemoveUser = async (userId, chatId) => {
     try {
       const { data } = await axios.put(
-        `${VITE_SERVER_URI}/chat/groupRemove`,
+        `${import.meta.env.VITE_SERVER_URI}/chat/groupRemove`,
         { userId, chatId },
         { withCredentials: true }
       );
@@ -192,7 +192,7 @@ const GroupChatModal = ({ onClose }) => {
   const handleAddUser = async (userId, chatId) => {
     try {
       const { data } = await axios.put(
-        `${VITE_SERVER_URI}/chat/groupAdd`,
+        `${import.meta.env.VITE_SERVER_URI}/chat/groupAdd`,
         { userId, chatId },
         { withCredentials: true }
       );
@@ -217,7 +217,7 @@ const GroupChatModal = ({ onClose }) => {
     // console.log(chatId);
     try {
       const { data } = await axios.put(
-        `${VITE_SERVER_URI}/chat/leaveGroup`,
+        `${import.meta.env.VITE_SERVER_URI}/chat/leaveGroup`,
         { chatId },
         { withCredentials: true }
       );

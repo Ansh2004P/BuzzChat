@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import useChatState from "./useChatState";
-import { extractErrorMessage, VITE_SERVER_URI } from "../utils/utils";
+import { extractErrorMessage } from "../utils/utils";
 import { toast } from "react-toastify";
 
 const useFetchChat = () => {
@@ -12,7 +12,7 @@ const useFetchChat = () => {
   const fetchChats = async () => {
     try {
       const response = await axios.get(
-        `${VITE_SERVER_URI}/user/get-users`,
+        `${import.meta.env.VITE_SERVER_URI}/user/get-users`,
         {
           withCredentials: true,
         }

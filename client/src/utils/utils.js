@@ -38,6 +38,3 @@ export function formatTimestamp(isoTimestamp) {
 
   return `${formattedDate} at ${formattedTime}`;
 }
-
-export const VITE_SERVER_URI="http://localhost:8000/api/v1"
-export const VITE_SOCKET_URI="http://localhost:8000"

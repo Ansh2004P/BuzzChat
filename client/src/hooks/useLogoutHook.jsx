@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { clearUser } from "../utils/redux/userSlice";
-import { VITE_SERVER_URI } from "../utils/utils";
+
 
 const useLogoutHook = () => {
   const dispatch = useDispatch();
@@ -15,7 +15,7 @@ const useLogoutHook = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${VITE_SERVER_URI}/user/logout`,
+        `${import.meta.env.VITE_SERVER_URI}/user/logout`,
         {},
         {
           withCredentials: true,

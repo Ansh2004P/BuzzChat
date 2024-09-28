@@ -1,7 +1,7 @@
 import { toast } from "react-toastify";
 import { Bounce } from "react-toastify";
 import { checkValidData } from "../../../utils/validate";
-import { extractErrorMessage, VITE_SERVER_URI } from "../../../utils/utils";
+import { extractErrorMessage} from "../../../utils/utils";
 import axios from "axios";
 
 const useSignupFunctionHook = ({
@@ -56,7 +56,7 @@ const useSignupFunctionHook = ({
       };
 
       const { data } = await axios.post(
-        `${VITE_SERVER_URI}/user/register`,
+        `${import.meta.env.VITE_SERVER_URI}/user/register`,
         formData,
         config
       );

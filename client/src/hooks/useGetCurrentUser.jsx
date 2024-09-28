@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { extractErrorMessage, VITE_SERVER_URI } from "../utils/utils";
+import { extractErrorMessage } from "../utils/utils";
 import { toast } from "react-toastify";
 import { setUser } from "../utils/redux/userSlice";
 
@@ -11,7 +11,7 @@ const useGetCurrentUser = () => {
 
   const getCurrentUser = async () => {
     const response = await axios.get(
-      `${VITE_SERVER_URI}/user/current-user`,
+      `${import.meta.env.VITE_SERVER_URI}/user/current-user`,
       {
         withCredentials: true,
       }
