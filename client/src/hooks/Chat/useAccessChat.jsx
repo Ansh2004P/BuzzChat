@@ -1,6 +1,7 @@
 // src/hooks/Chat/useAccessChat.js
 import { useMutation } from 'react-query';
 import axios from 'axios';
+import { VITE_SERVER_URI } from '../../utils/utils';
 
 const accessChat = async ({userId, isGroupChat}) => {
   const config = {
@@ -11,7 +12,7 @@ const accessChat = async ({userId, isGroupChat}) => {
   };
 
   const res = await axios.post(
-    `${import.meta.env.VITE_SERVER_URI}/chat/`,
+    `${VITE_SERVER_URI}/chat/`,
     { userId, isGroupChat },
     config
   );

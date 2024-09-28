@@ -2,7 +2,7 @@ import { useState } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { extractErrorMessage } from "../../utils/utils";
+import { extractErrorMessage, VITE_SERVER_URI } from "../../utils/utils";
 
 const AvatarSelector = ({ photu, onAvatarChange }) => {
   const [avatar, setAvatar] = useState(null);
@@ -32,7 +32,7 @@ const AvatarSelector = ({ photu, onAvatarChange }) => {
 
       try {
         const response = await axios.patch(
-          `${import.meta.env.VITE_SERVER_URI}/user/update-avatar`,
+          `${VITE_SERVER_URI}/user/update-avatar`,
           formData,
           config
         );

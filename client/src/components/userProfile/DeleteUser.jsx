@@ -3,6 +3,7 @@ import  { useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../assets/images/Ellipsis@1x-1.8s-200px-200px";
+import { VITE_SERVER_URI } from "../../utils/utils";
 
 const DeleteUser = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const DeleteUser = () => {
     setLoading(true);
     try {
       const response = await axios.delete(
-        `${import.meta.env.VITE_SERVER_URI}/user/delete-user`,
+        `${VITE_SERVER_URI}/user/delete-user`,
         {
           withCredentials: true,
         }

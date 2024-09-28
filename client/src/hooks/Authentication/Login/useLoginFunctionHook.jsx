@@ -2,7 +2,7 @@ import { setUser } from "../../../utils/redux/userSlice";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { checkValidData } from "../../../utils/validate";
-import { extractErrorMessage } from "../../../utils/utils";
+import { extractErrorMessage, VITE_SERVER_URI } from "../../../utils/utils";
 
 const useLoginFunctionHook = ({
   navigate,
@@ -43,7 +43,7 @@ const useLoginFunctionHook = ({
       };
 
       const { data } = await axios.post(
-        `${import.meta.env.VITE_SERVER_URI}/user/login`,
+        `${VITE_SERVER_URI}/user/login`,
         userData,
         config
       );

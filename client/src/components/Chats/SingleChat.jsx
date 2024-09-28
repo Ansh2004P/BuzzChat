@@ -18,6 +18,7 @@ import useLottieOptions from "../../hooks/useLottieOptions";
 import io from "socket.io-client";
 import useGetCurrentUser from "../../hooks/useGetCurrentUser";
 import GroupChatModal from "./GroupChatmodal";
+import { VITE_SERVER_URI } from "../../utils/utils";
 
 var socket, selectedChatCompare;
 
@@ -81,7 +82,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       setLoading(true);
 
       const { data } = await axios.get(
-        ` ${import.meta.env.VITE_SERVER_URI}/message/${
+        ` ${VITE_SERVER_URI}/message/${
           selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId
         }?chatId=${
           selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId
@@ -129,7 +130,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           });
 
           const res = await axios.post(
-            `${import.meta.env.VITE_SERVER_URI}/message/${
+            `${VITE_SERVER_URI}/message/${
               selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId
             }?chatId=${
               selectedChat.isGroupChat ? selectedChat._id : selectedChat.chatId

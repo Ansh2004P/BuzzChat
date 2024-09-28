@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { updateUser } from "../../utils/redux/userSlice";
+import { VITE_SERVER_URI } from "../../utils/utils";
 
 const UpdateName = () => {
   const username = useSelector((state) => state.user.user.username);
@@ -31,7 +32,7 @@ const UpdateName = () => {
     }
     try {
       const response = await axios.patch(
-        `${import.meta.env.VITE_SERVER_URI}/user/update-username`,
+        `${VITE_SERVER_URI}/user/update-username`,
         { username: tempName },
         { withCredentials: true }
       );
