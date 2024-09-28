@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { extractErrorMessage } from "../../utils/utils";
 
 import useSearchUser from "../../hooks/useSearchUser";
-import { setSearchResult } from "../../utils/redux/groupSearchSlice";
+import { setgroupSearchResult } from "../../utils/redux/groupSearchSlice";
 import { useDispatch, useSelector } from "react-redux";
 import useChatState from "../../hooks/useChatState";
 import { addChat, setChats } from "../../utils/redux/chatSlice";
@@ -40,43 +40,59 @@ const Modal = ({ onClose }) => {
 
   const searchUser = useRef("");
   const prevValue = useRef("");
-  const searchResult = useSelector((state) => state.groupSearch.searchResult);
-  const { handleSearch } = useSearchUser(searchUser);
+  const searchResult = useSelector(
+    (state) => state.groupSearch.groupSearchResult
+  );
+  const { handleSearch } = useSearchUser({ searchUserRef: searchUser, cnt: 2 });
 
   const handleInputChange = (e) => {
     const currentValue = e.target.value;
 
     if (prevValue.current !== "" && currentValue === "") {
-      setSearchResult([]); // Reset to initial chat list
+      setgroupSearchResult([]); // Reset to initial chat list
     }
     prevValue.current = currentValue;
   };
 
   const handleAvatarChange = (file) => {
-    if (file) {
-      setAvatar(file);
-      const reader = new FileReader();
-      reader.onload = () => {
-        setPreviewAvatar(reader.result);
-      };
-      reader.readAsDataURL(file);
+    const validImageTypes = ["image/jpeg", "image/png", "image/gif"];
+    if (file && validImageTypes.includes(file.type)) {
+      if (file.size <= 5 * 1024 * 1024) {
+        // 5MB size limit
+        setAvatar(file); // Save avatar to state
+        const reader = new FileReader();
+        reader.onload = () => {
+          setPreviewAvatar(reader.result); // Preview avatar
+        };
+        reader.readAsDataURL(file);
+      } else {
+        toast.error("File size exceeds 5MB limit");
+      }
+    } else {
+      toast.error(
+        "Unsupported file type. Please upload JPEG, PNG, or GIF images."
+      );
     }
   };
 
   const handleSubmit = async () => {
-    if (!avatar) {
-      toast.error("Please select an avatar", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        theme: "dark",
-      });
+    if (!groupName.current.value.trim()) {
+      toast.error("Please enter a group name");
       return;
     }
+
+    if (!avatar) {
+      toast.error("Please select an avatar");
+      return;
+    }
+
+    if (participants.size === 0) {
+      toast.error("Please add at least one participant");
+      return;
+    }
+
     setReqSend(true);
+
     const participantsArray = Array.from(participants.entries()).map(
       ([id, details]) => ({
         _id: id,
@@ -84,50 +100,27 @@ const Modal = ({ onClose }) => {
         username: details.username,
       })
     );
-    // console.log(participantsArray);
 
     const formData = new FormData();
     formData.append("avatar", avatar);
-    formData.append("groupName", groupName.current.value);
+    formData.append("groupName", groupName.current.value.trim());
     formData.append("participants", JSON.stringify(participantsArray));
 
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_SERVER_URI}/chat/group`,
         formData,
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
 
-      // console.log(response.data.data);
+      // Update chat list after group creation
       dispatch(setChats([response.data.data, ...chats]));
       handleClose();
 
-      setReqSend(false);
-
-      toast.success(response.data.message, {
-        position: "bottom-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined,
-        theme: "dark",
-      });
+      toast.success("Group created successfully");
     } catch (error) {
-      setReqSend(false);
-      const errorMessage = extractErrorMessage(error.response.data);
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        theme: "dark",
-      });
+      const errorMessage = extractErrorMessage(error.response?.data || error);
+      toast.error(errorMessage);
     } finally {
       setReqSend(false);
     }
@@ -146,7 +139,7 @@ const Modal = ({ onClose }) => {
         />
         <span className="block text-xl font-bold mb-4">Create Group</span>
 
-        <div className="flex justify-center my-4 ">
+        <div className="flex justify-center my-4">
           <label
             htmlFor="avatar-input"
             className="cursor-pointer relative w-28 h-28 rounded-full overflow-hidden border-4 border-gray-700"
@@ -154,14 +147,15 @@ const Modal = ({ onClose }) => {
             {previewAvatar ? (
               <img
                 src={previewAvatar}
-                alt="Avatar"
+                alt="Avatar Preview"
                 className="w-full h-full object-cover"
               />
             ) : (
               <div className="w-full h-full bg-gray-500 flex justify-center items-center">
                 <img
                   src="https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"
-                  alt="default image"
+                  alt="Default avatar"
+                  className="w-full h-full object-cover"
                 />
               </div>
             )}

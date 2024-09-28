@@ -69,7 +69,7 @@ const MyChats = ({ currUserId }) => {
   // console.log(chats);
   useEffect(() => {
     fetchChat();
-  }, []);
+  }, [chats]);
 
   // console.log("Chats", chats);
 

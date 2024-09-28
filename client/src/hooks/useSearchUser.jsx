@@ -4,8 +4,9 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useCallback } from "react";
 import { setSearchResult } from "../utils/redux/chatSlice";
+import { setgroupSearchResult } from "../utils/redux/groupSearchSlice";
 
-const useSearchUser = (searchUserRef) => {
+const useSearchUser = ({ searchUserRef, cnt }) => {
   const dispatch = useDispatch();
 
   // Memoize handleSearch function to prevent re-creation on each render
@@ -23,8 +24,12 @@ const useSearchUser = (searchUserRef) => {
             }
           );
           console.log("chat", response.data.data);
-
-          dispatch(setSearchResult(response.data.data)); // Update search results in Redux
+          if (cnt === 1) {
+            dispatch(setSearchResult(response.data.data)); // Update search results in Redux
+          }
+          if (cnt === 2) {
+            dispatch(setgroupSearchResult(response.data.data)); // Update search results in Redux
+          }
         } catch (err) {
           const errorMessage =
             err.response?.data?.message || "Error searching users";

@@ -3,15 +3,15 @@ import { createSlice } from "@reduxjs/toolkit";
 const GroupSearchSlice = createSlice({
   name: "groupSearch",
   initialState: {
-    searchResult: [],
+    groupSearchResult: [],
     participants: [],
   },
   reducers: {
-    setSearchResult: (state, action) => {
-      state.searchResult = action.payload;
+    setgroupSearchResult: (state, action) => {
+      state.groupSearchResult = action.payload;
     },
     clearSearchResult: (state) => {
-      state.searchResult = [];
+      state.groupSearchResult = [];
     },
     setParticipants: (state, action) => {
       state.participants = action.payload;
@@ -42,7 +42,7 @@ const GroupSearchSlice = createSlice({
 });
 
 export const {
-  setSearchResult,
+  setgroupSearchResult,
   clearSearchResult,
   removeParticipant,
   addParticipant,

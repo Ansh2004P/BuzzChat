@@ -12,7 +12,7 @@ const SearchBar = React.memo(function SearchBar({
   const dispatch = useDispatch();
   const searchResult = useSelector((state) => state.chat.searchResult);
   // console.log("searchResult", searchResult);
-  const { handleSearch } = useSearchUser(searchUser);
+  const { handleSearch } = useSearchUser({ searchUserRef: searchUser, cnt: 1 });
 
   // Memoize handleInputChange to prevent re-creation
   const handleInputChange = useCallback(

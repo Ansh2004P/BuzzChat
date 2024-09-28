@@ -35,7 +35,9 @@ const GroupChatModal = ({ onClose }) => {
   const { setSelectedChat } = useChatState();
   const dispatch = useDispatch();
   // console.log(chat);
-  const searchResult = useSelector((state) => state.groupSearch.searchResult);
+  const searchResult = useSelector(
+    (state) => state.groupSearch.groupSearchResult
+  );
   const participants = useSelector((state) => state.groupSearch.participants);
 
   // Get search user hook
