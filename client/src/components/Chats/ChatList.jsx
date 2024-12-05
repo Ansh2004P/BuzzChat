@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import { Scrollbars } from "react-custom-scrollbars";
 import useChatState from "../../hooks/useChatState";
 import useAccessChat from "../../hooks/Chat/useAccessChat";
@@ -6,12 +6,13 @@ import useUser from "../../hooks/Chat/useUser";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import useGetCurrentUser from "../../hooks/useGetCurrentUser";
+import axios from "axios";
 
 const ChatList = () => {
-  const chats = useSelector((state) => state.chat.chats);
   const { user } = useGetCurrentUser();
   const currentUserId = user._id;
   const {
+    chats,
     selectedChat,
     setSelectedChat,
     setSearchResult,
@@ -29,9 +30,66 @@ const ChatList = () => {
     error: accessChatError,
   } = useAccessChat();
 
-  React.useEffect(() => {
-    // console.log("Chats state from Redux:", chats);
-  }, [chats]);
+  const fetchChat = useCallback(async () => {
+    console.log("Fetching chats");
+    try {
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_SERVER_URI}/chat`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      // console.log(data.data);
+
+      const uniqueParticipants = {};
+
+      data.data.forEach((element) => {
+        // console.log("element", element);
+        if (element.isGroupChat) {
+          uniqueParticipants[element._id] = {
+            _id: element._id,
+            username: element.chatName,
+            avatar: element.avatar,
+            isGroupChat: true,
+            participants: element.participants,
+            lastMessage: element.lastMessage,
+          };
+        } else {
+          element.participants.forEach((participant) => {
+            // console.log(element.lastMessage);
+            // console.log("participant single chat", participant);
+            if (participant._id !== currentUserId) {
+              uniqueParticipants[participant._id] = {
+                ...participant,
+                lastMessage: [...element.lastMessage],
+                isGroupChat: false,
+              };
+            }
+          });
+        }
+      });
+
+      const uniqueParticipantsArray = Object.values(uniqueParticipants);
+      // console.log(uniqueParticipantsArray);
+
+      setChats(uniqueParticipantsArray);
+      setSearchResult(uniqueParticipantsArray);
+    } catch (error) {
+      toast.error("Error fetching chats", {
+        position: "bottom-center",
+        autoClose: 5000,
+        closeButton: true,
+        theme: "dark",
+        pauseOnHover: false,
+      });
+    }
+  }, [currentUserId, setChats, setSearchResult]);
+
+  // console.log(chats);
+  useEffect(() => {
+    fetchChat();
+  }, []);
 
   const handleChatClick = async (chat) => {
     try {
@@ -150,10 +208,44 @@ const ChatList = () => {
     <div className="flex flex-col py-3 my-2 w-full h-full rounded-lg overflow-hidden">
       {accessChatError ? (
         <p>Error accessing chat: {accessChatError.message}</p>
-      ) : chats.length || searchResult.length ? (
+      ) : searchResult.length ? (
         <Scrollbars autoHide>
           <div>
-            {(searchResult.length === 0 ? chats : searchResult).map((chat) => (
+            {searchResult.map((chat) => (
+              <div
+                key={chat._id}
+                onClick={() => handleChatClick(chat)}
+                className={`cursor-pointer py-4 px-4 mx-1 my-2 rounded-lg w-[28vw] h-fit ${
+                  selectedChat?._id === chat._id
+                    ? "bg-neutral-500 text-white"
+                    : "bg-neutral-700 text-white"
+                } hover:bg-neutral-400 hover:text-white`}
+              >
+                <div className="flex justify-between">
+                  <div className="flex">
+                    <img
+                      src={chat.avatar}
+                      alt="avatar"
+                      className="w-20 h-20 rounded-full object-cover border-2 border-white"
+                    />
+                    <div className="flex flex-col relative">
+                      <span className="ml-2 sm:ml-4 md:ml-6 lg:ml-10 font-semibold text-base sm:text-lg">
+                        {chat.username || chat.chatName}
+                      </span>
+                      <span className="text-stone-400 w-[60%] sm:w-[50%] md:w-[40%] md:mx-[26%] lg:w-[30%] mt-1 sm:mt-2 h-5 text-ellipsis whitespace-nowrap">
+                        {renderLastMessage(chat)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Scrollbars>
+      ) : chats.length ? (
+        <Scrollbars autoHide>
+          <div>
+            {chats.map((chat) => (
               <div
                 key={chat._id}
                 onClick={() => handleChatClick(chat)}

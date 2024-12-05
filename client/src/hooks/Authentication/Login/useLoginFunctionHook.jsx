@@ -2,7 +2,7 @@ import { setUser } from "../../../utils/redux/userSlice";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { checkValidData } from "../../../utils/validate";
-import { extractErrorMessage} from "../../../utils/utils";
+import { extractErrorMessage } from "../../../utils/utils";
 
 const useLoginFunctionHook = ({
   navigate,
@@ -23,7 +23,10 @@ const useLoginFunctionHook = ({
         return;
       }
 
-      const validationError = checkValidData(email.current.value, password.current.value);
+      const validationError = checkValidData(
+        email.current.value,
+        password.current.value
+      );
       if (validationError) {
         setErrorMessage(validationError);
         return;
@@ -64,10 +67,11 @@ const useLoginFunctionHook = ({
       localStorage.setItem("userInfo", JSON.stringify(data));
       dispatch(setUser(data.data));
       navigate("/chats");
-
     } catch (error) {
       // Handle error response
-      const errorMessage = extractErrorMessage(error.response?.data || {});
+      console.log(error);
+      let errorMessage = extractErrorMessage(error.response?.data || error.message);
+  
       toast.error(errorMessage, {
         position: "top-right",
         autoClose: 5000,

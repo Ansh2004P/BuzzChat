@@ -4,7 +4,7 @@ import { CrossButton } from "../userProfile/CrossButton";
 import Participants from "./Participants";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { extractErrorMessage} from "../../utils/utils";
+import { extractErrorMessage } from "../../utils/utils";
 
 import useSearchUser from "../../hooks/useSearchUser";
 import { setgroupSearchResult } from "../../utils/redux/groupSearchSlice";
@@ -114,7 +114,7 @@ const Modal = ({ onClose }) => {
       );
 
       // Update chat list after group creation
-      dispatch(setChats([response.data.data, ...chats]));
+      dispatch(setChats(chats.concat(response.data.data)));
       handleClose();
 
       toast.success("Group created successfully");

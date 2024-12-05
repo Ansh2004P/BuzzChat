@@ -20,10 +20,7 @@ const chatSlice = createSlice({
       state.notification = action.payload;
     },
     setChats: (state, action) => {
-      // console.log("Previous state:", JSON.stringify(state.chats, null, 2));
-      // console.log("Action payload:", JSON.stringify(action.payload, null, 2));
-      // console.log("Previous state:", JSON.stringify(state.chats, null, 2));
-      // console.log("Action payload:", JSON.stringify(action.payload, null, 2));
+    
       state.chats = action.payload;
       // console.log("Updated state:", JSON.stringify(state.chats, null, 2));
       // console.log("Updated state:", JSON.stringify(state.chats, null, 2));

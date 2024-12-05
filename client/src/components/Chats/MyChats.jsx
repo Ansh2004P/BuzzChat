@@ -12,7 +12,7 @@ const MyChats = ({ currUserId }) => {
   const { chats, setChats, setSearchResult } = useChatState();
 
   const fetchChat = useCallback(async () => {
-    // console.log("Fetching chats");
+    console.log("Fetching chats");
     try {
       const { data } = await axios.get(
         `${import.meta.env.VITE_SERVER_URI}/chat`,
@@ -70,8 +70,9 @@ const MyChats = ({ currUserId }) => {
   // console.log(chats);
   useEffect(() => {
     fetchChat();
-  }, [chats]);
+  }, []);
 
+  
   // console.log("Chats", chats);
 
   return (
