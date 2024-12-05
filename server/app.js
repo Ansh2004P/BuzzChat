@@ -8,7 +8,7 @@ dotenv.config({ path: "./.env" })
 
 // Configuration options for cors
 const corsOptions = {
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: process.env.CORS_ORIGIN ||  "*",
     methods: ["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"],
     credentials: true,
 }
