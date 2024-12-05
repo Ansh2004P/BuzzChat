@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { PencilIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { CrossButton } from "../userProfile/CrossButton";
 import { formatTimestamp } from "../../utils/utils";
-import Scrollbars from "react-custom-scrollbars";
+import Scrollbars from "react-custom-scrollbars-2";
 import { UserItem, withAdminLabel } from "./UserItem";
 import { useDispatch, useSelector } from "react-redux";
 import {

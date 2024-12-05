@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from "react";
-import { Scrollbars } from "react-custom-scrollbars";
+import { Scrollbars } from "react-custom-scrollbars-2";
 import useChatState from "../../hooks/useChatState";
 import useAccessChat from "../../hooks/Chat/useAccessChat";
 import useUser from "../../hooks/Chat/useUser";

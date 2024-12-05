@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useMemo } from "react";
-import Scrollbars from "react-custom-scrollbars";
+import { Scrollbars } from "react-custom-scrollbars-2";
 import PropTypes from "prop-types";
 import ChatInfo from "./ChatInfo";
 
