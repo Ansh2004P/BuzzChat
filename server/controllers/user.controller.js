@@ -121,7 +121,9 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const options = {
         httpOnly: true,
-        secure: true,
+        secure: process.env.NODE_ENV === "production", // Secure cookies only in production
+        sameSite: "Strict", // Ensures cookies are only sent with requests from your own site
+        maxAge: 7 * 24 * 60 * 60 * 1000, // Set cookie expiration (7 days)
     }
     console.log("user login successfully")
 
@@ -136,25 +138,20 @@ const logoutUser = asyncHandler(async (req, res) => {
     try {
         await User.findByIdAndUpdate(
             req.user._id,
-            {
-                $unset: {
-                    refreshToken: 1,
-                },
-            },
-            {
-                new: true,
-            }
+            { $unset: { refreshToken: 1 } },
+            { new: true }
         )
 
-        const options = {
+        const cookieOptions = {
             httpOnly: true,
-            secure: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "Strict",
         }
 
         return res
             .status(200)
-            .clearCookie("accessToken", options)
-            .clearCookie("refreshToken", options)
+            .clearCookie("accessToken", cookieOptions)
+            .clearCookie("refreshToken", cookieOptions)
             .json(new ApiResponse(200, {}, "User logged out successfully"))
     } catch (error) {
         throw new ApiError(500, error?.message || "Something went wrong")
@@ -187,7 +184,9 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
         const options = {
             httpOnly: true,
-            secure: true,
+            secure: process.env.NODE_ENV === "production", // Secure cookies only in production
+            sameSite: "Strict", // Ensures cookies are only sent with requests from your own site
+            maxAge: 7 * 24 * 60 * 60 * 1000, // Set cookie expiration (7 days)
         }
 
         const { accessToken, refreshToken } =
