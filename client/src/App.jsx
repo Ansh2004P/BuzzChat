@@ -13,7 +13,7 @@ import { useEffect } from "react";
 import useInitHook from "./hooks/useInitHook";
 
 function App() {
-  useInitHook();
+  // useInitHook();
   return (
     <Provider store={appStore}>
       {/* <AuthProvider> */}
