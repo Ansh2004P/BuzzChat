@@ -47,40 +47,45 @@ app.use("/api/v1/chat", chatRoutes)
 app.use("/api/v1/message", messageRoutes)
 
 // Handle all other routes by serving the index.html file
+app.get("/chats", (req, res) => {
+    if (process.env.NODE_ENV === "production") {
+        // Serve the index.html for /chats route in production
+        res.redirect("https://buzzchat-fe.onrender.com/chats")
+    } else {
+        // Redirect to frontend dev server for /chats route in local
+        res.sendFile(path.join(__dirname, "../client/dist", "index.html"))
+    }
+})
 
-if (process.env.NODE_ENV === "production") {
-    app.get("/chats", (req, res) => {
-        res.redirect("http://localhost:5173/chats") // Update with your local dev server URL if needed
-    })
+app.get("/login", (req, res) => {
+    if (process.env.NODE_ENV === "production") {
+        // Serve the index.html for /login route in production
+        res.redirect("https://buzzchat-fe.onrender.com/login")
+    } else {
+        // Redirect to frontend dev server for /login route in local
+        res.sendFile(path.join(__dirname, "../client/dist", "index.html"))
+    }
+})
 
-    app.get("/login", (req, res) => {
-        res.redirect("http://localhost:5173/login")
-    })
-
-    app.get("/signup", (req, res) => {
-        res.redirect("http://localhost:5173/signup")
-    })
-    app.get("*", (req, res) => {
-        if (process.env.NODE_ENV === "production") {
-            // Serve the index.html for all other routes in production
-            res.redirect("http://localhost:5173")
-        } else {
-            // Redirect to the frontend dev server for all other routes in local
-            res.sendFile(path.join(__dirname, "../client/dist", "index.html")) // Update with your local dev server URL if needed
-        }
-    })
-} else {
-    app.get("*", (req, res) => {
-        if (process.env.NODE_ENV === "production") {
-            // Serve the index.html for all other routes in production
-            res.redirect("http://localhost:5173")
-        } else {
-            // Redirect to the frontend dev server for all other routes in local
-            res.sendFile(path.join(__dirname, "../client/dist", "index.html")) // Update with your local dev server URL if needed
-        }
-    })
-}
+app.get("/signup", (req, res) => {
+    if (process.env.NODE_ENV === "production") {
+        // Serve the index.html for /signup route in production
+        res.redirect("https://buzzchat-fe.onrender.com/signup")
+    } else {
+        // Redirect to frontend dev server for /signup route in local
+        res.sendFile(path.join(__dirname, "../client/dist", "index.html"))
+    }
+})
 
 // Catch-all for other routes (those handled by React Router in the app)
+app.get("*", (req, res) => {
+    if (process.env.NODE_ENV === "production") {
+        res.redirect("https://buzzchat-fe.onrender.com/")
+        // Serve the index.html for all other routes in production
+    } else {
+        // Redirect to the frontend dev server for all other routes in local
+        res.sendFile(path.join(__dirname, "../client/dist", "index.html"))
+    }
+})
 
 export { app, corsOptions }
