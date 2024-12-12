@@ -34,7 +34,7 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 // Serve static files from the React app
-app.use(express.static(path.join(__dirname, "../client/dist")))
+// app.use(express.static(path.join(__dirname, "../client/dist")))
 
 // routes Import
 import userRoutes from "./routes/user.routes.js"
