@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 import dotenv from "dotenv"
+import path from "path"
 
 const app = express()
 dotenv.config({ path: "./.env" })
@@ -27,6 +28,9 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }))
 app.use(express.static("public"))
 app.use(cookieParser())
 
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, "../client/build")))
+
 // routes Import
 import userRoutes from "./routes/user.routes.js"
 import chatRoutes from "./routes/chat.routes.js"
@@ -36,5 +40,10 @@ import messageRoutes from "./routes/message.routes.js"
 app.use("/api/v1/user", userRoutes)
 app.use("/api/v1/chat", chatRoutes)
 app.use("/api/v1/message", messageRoutes)
+
+// Handle all other routes by serving the index.html file
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/build", "index.html"))
+})
 
 export { app, corsOptions }

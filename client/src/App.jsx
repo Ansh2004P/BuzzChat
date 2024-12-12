@@ -38,7 +38,14 @@ function App() {
                 </RedirectIfAuthenticated>
               }
             />
-            <Route path="/signup" element={<Signup />} />
+            <Route
+              path="/signup"
+              element={
+                <RedirectIfAuthenticated>
+                  <Signup />
+                </RedirectIfAuthenticated>
+              }
+            />
           </Routes>
         </div>
       </div>
