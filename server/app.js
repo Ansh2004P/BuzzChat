@@ -47,16 +47,45 @@ app.use("/api/v1/chat", chatRoutes)
 app.use("/api/v1/message", messageRoutes)
 
 // Handle all other routes by serving the index.html file
+app.get("/chats", (req, res) => {
+    if (process.env.NODE_ENV === "production") {
+        // Serve the index.html for /chats route in production
+        res.sendFile(path.join(__dirname, "../client/dist", "index.html"))
+    } else {
+        // Redirect to frontend dev server for /chats route in local
+        res.redirect("http://localhost:5173/chats") // Update with your local dev server URL if needed
+    }
+})
+
+app.get("/login", (req, res) => {
+    if (process.env.NODE_ENV === "production") {
+        // Serve the index.html for /login route in production
+        res.sendFile(path.join(__dirname, "../client/dist", "index.html"))
+    } else {
+        // Redirect to frontend dev server for /login route in local
+        res.redirect("http://localhost:5173/login")
+    }
+})
+
+app.get("/signup", (req, res) => {
+    if (process.env.NODE_ENV === "production") {
+        // Serve the index.html for /signup route in production
+        res.sendFile(path.join(__dirname, "../client/dist", "index.html"))
+    } else {
+        // Redirect to frontend dev server for /signup route in local
+        res.redirect("http://localhost:5173/signup")
+    }
+})
+
+// Catch-all for other routes (those handled by React Router in the app)
 app.get("*", (req, res) => {
     if (process.env.NODE_ENV === "production") {
-        // Serve the index.html from the production build
-        // res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
-        res.redirect("https://buzzchat-fe.onrender.com/")
+        // Serve the index.html for all other routes in production
+        res.sendFile(path.join(__dirname, "../client/dist", "index.html"))
     } else {
-        // Redirect to the frontend development server in local
-        res.redirect("http://localhost:5173") // Replace with your local frontend dev server URL
+        // Redirect to the frontend dev server for all other routes in local
+        res.redirect("http://localhost:5173") // Update with your local dev server URL if needed
     }
 })
 
 export { app, corsOptions }
-// https://buzzchat-fe.onrender.com/
