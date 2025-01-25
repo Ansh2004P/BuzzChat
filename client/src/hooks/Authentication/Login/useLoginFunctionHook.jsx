@@ -6,7 +6,6 @@ import { extractErrorMessage } from "../../../utils/utils";
 
 const useLoginFunctionHook = ({
   navigate,
-  name,
   email,
   password,
   setErrorMessage,
@@ -18,7 +17,7 @@ const useLoginFunctionHook = ({
 
     try {
       // Validate form data
-      if (!name.current.value && !email.current.value) {
+      if (!email.current.value) {
         setErrorMessage("Both name and email cannot be empty");
         return;
       }
@@ -34,7 +33,6 @@ const useLoginFunctionHook = ({
 
       // Prepare request data
       const userData = {
-        username: name.current.value,
         email: email.current.value,
         password: password.current.value,
       };

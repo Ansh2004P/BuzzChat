@@ -5,7 +5,6 @@ import useLoginFunctionHook from "../hooks/Authentication/Login/useLoginFunction
 const Login = () => {
   const {
     navigate,
-    name,
     email,
     password,
     errorMessage,
@@ -17,7 +16,6 @@ const Login = () => {
 
   const { handleButtonClick } = useLoginFunctionHook({
     navigate,
-    name,
     email,
     password,
     errorMessage,
@@ -32,12 +30,6 @@ const Login = () => {
       <div className="p-4 my-10 w-[40%] h-fit bg-stone-800 bg-opacity-70 rounded-2xl flex flex-col justify-evenly backdrop-blur-lg shadow-lg shadow-black">
         <h1 className="text-3xl font-sans font-bold mx-[40%]">Login</h1>
         <form className="mt-6" onClick={(e) => e.preventDefault()}>
-          <input
-            ref={name}
-            type="text"
-            placeholder="Enter your name"
-            className="p-4 my-4 w-full bg-gray-700 opacity-50 rounded-sm placeholder-white shadow-sm shadow-slate-600 cursor-text"
-          />
           <input
             ref={email}
             type="text"

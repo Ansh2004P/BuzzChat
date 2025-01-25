@@ -17,7 +17,7 @@ const app = express()
 
 // CORS Configuration for allowing requests from frontend
 const corsOptions = {
-    origin: process.env.CORS_ORIGIN || "https://buzzchat-fe.onrender.com", // Update with your frontend URL
+    origin: process.env.CORS_ORIGIN , // Update with your frontend URL
     methods: ["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"],
     credentials: true, // Allow cookies if needed
 }

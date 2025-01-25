@@ -92,14 +92,14 @@ const registerUser = asyncHandler(async (req, res) => {
 })
 
 const loginUser = asyncHandler(async (req, res) => {
-    const { email, username, password } = req.body
+    const { email, password } = req.body
 
-    if (username.trim() === "" && email.trim() === "") {
-        throw new ApiError(400, "username or email is required")
+    if (email.trim() === "") {
+        throw new ApiError(400, "email is required")
     }
 
     const user = await User.findOne({
-        $or: [{ email }, { username }],
+        $or: [{ email }],
     })
 
     if (!user) {
@@ -121,9 +121,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const options = {
         httpOnly: true,
-        secure: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "None",
+        sameSite: "Lax",
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
     }
     console.log("user login successfully")
@@ -153,7 +152,7 @@ const logoutUser = asyncHandler(async (req, res) => {
             httpOnly: true,
             secure: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "None",
+            sameSite: "Lax",
             maxAge: 24 * 60 * 60 * 1000, // 24 hours
         }
 
@@ -195,7 +194,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             httpOnly: true,
             secure: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "None",
+            sameSite: "Lax",
             maxAge: 24 * 60 * 60 * 1000, // 24 hours
         }
 
@@ -229,7 +228,7 @@ const deleteUser = asyncHandler(async (req, res) => {
     const options = {
         httpOnly: true,
         secure: true, // Set secure flag based on environment
-        // sameSite: 'None', // Optional, for extra security
+        sameSite: 'Lax', // Optional, for extra security
     }
 
     const userId = req.user?._id

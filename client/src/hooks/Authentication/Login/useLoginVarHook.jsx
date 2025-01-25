@@ -8,7 +8,6 @@ const useLoginVarHook = () => {
 
   const [errorMessage, setErrorMessage] = useState("");
 
-  const name = useRef(null);
   const email = useRef(null);
   const password = useRef(null);
 
@@ -16,7 +15,6 @@ const useLoginVarHook = () => {
 
   return {
     navigate,
-    name,
     email,
     password,
     errorMessage,
