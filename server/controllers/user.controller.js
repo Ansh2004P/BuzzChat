@@ -122,7 +122,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const options = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "Lax",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
     }
     console.log("user login successfully")
@@ -152,7 +152,7 @@ const logoutUser = asyncHandler(async (req, res) => {
             httpOnly: true,
             secure: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "Lax",
+            sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
             maxAge: 24 * 60 * 60 * 1000, // 24 hours
         }
 
@@ -194,7 +194,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             httpOnly: true,
             secure: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "Lax",
+            sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
             maxAge: 24 * 60 * 60 * 1000, // 24 hours
         }
 
@@ -227,8 +227,8 @@ const deleteUser = asyncHandler(async (req, res) => {
     // Set cookie options for security
     const options = {
         httpOnly: true,
-        secure: true, // Set secure flag based on environment
-        sameSite: 'Lax', // Optional, for extra security
+        secure: process.env.NODE_ENV === "production", // Set secure flag based on environment
+        sameSite: "Lax", // Optional, for extra security
     }
 
     const userId = req.user?._id
