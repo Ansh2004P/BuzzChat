@@ -1,7 +1,7 @@
 import { toast } from "react-toastify";
 import { Bounce } from "react-toastify";
 import { checkValidData } from "../../../utils/validate";
-import { extractErrorMessage} from "../../../utils/utils";
+import { extractErrorMessage } from "../../../utils/utils";
 import axios from "axios";
 
 const useSignupFunctionHook = ({
@@ -12,6 +12,7 @@ const useSignupFunctionHook = ({
   setErrorMessage,
   avatar,
   previewAvatar,
+  setPreviewAvatar, // receive the state setter
   setLoading,
 }) => {
   const handleButtonClick = async () => {
@@ -92,7 +93,7 @@ const useSignupFunctionHook = ({
       avatar.current = file;
       const reader = new FileReader();
       reader.onload = () => {
-        previewAvatar.current = reader.result;
+        setPreviewAvatar(reader.result); // now this will update the state correctly
       };
       reader.readAsDataURL(file);
     }

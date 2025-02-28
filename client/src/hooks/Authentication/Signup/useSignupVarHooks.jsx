@@ -3,15 +3,12 @@ import { useNavigate } from "react-router-dom";
 
 const useSignupVarHooks = () => {
   const navigate = useNavigate();
-
   const name = useRef(null);
   const email = useRef(null);
   const password = useRef(null);
   const avatar = useRef(null);
-  const previewAvatar = useRef(null);
+  const [previewAvatar, setPreviewAvatar] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
-
- 
   const [loading, setLoading] = useState(false);
 
   return {
@@ -23,6 +20,7 @@ const useSignupVarHooks = () => {
     setErrorMessage,
     avatar,
     previewAvatar,
+    setPreviewAvatar, // make sure to return this
     loading,
     setLoading,
   };

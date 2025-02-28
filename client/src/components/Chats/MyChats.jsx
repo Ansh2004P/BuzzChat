@@ -9,7 +9,7 @@ import useChatState from "../../hooks/useChatState";
 
 
 const MyChats = ({ currUserId }) => {
-  const { chats, setChats, setSearchResult } = useChatState();
+  const { chats, setChats, setSearchResult, chatState} = useChatState();
 
   const fetchChat = useCallback(async () => {
     console.log("Fetching chats");

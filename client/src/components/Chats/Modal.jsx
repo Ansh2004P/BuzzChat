@@ -80,12 +80,10 @@ const Modal = ({ onClose }) => {
       toast.error("Please enter a group name");
       return;
     }
-
     if (!avatar) {
       toast.error("Please select an avatar");
       return;
     }
-
     if (participants.size === 0) {
       toast.error("Please add at least one participant");
       return;
@@ -113,8 +111,9 @@ const Modal = ({ onClose }) => {
         { withCredentials: true }
       );
 
-      // Update chat list after group creation
-      dispatch(setChats(chats.concat(response.data.data)));
+      // Instead of using setChats with a concatenation of a possibly stale chats value,
+      // dispatch the new group using addChat action.
+      dispatch(addChat(response.data.data));
       handleClose();
 
       toast.success("Group created successfully");

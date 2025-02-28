@@ -13,6 +13,7 @@ const Signup = () => {
     previewAvatar,
     loading,
     setLoading,
+    setPreviewAvatar,
   } = useSignupVarHooks();
 
   const { handleButtonClick, handleAvatarChange } = useSignupFunctionHook({
@@ -22,6 +23,7 @@ const Signup = () => {
     setErrorMessage,
     avatar,
     previewAvatar,
+    setPreviewAvatar, // pass it here
     navigate,
     setLoading,
   });
@@ -35,9 +37,9 @@ const Signup = () => {
             htmlFor="avatar-input"
             className="cursor-pointer relative w-28 h-28 rounded-full overflow-hidden border-4 border-gray-700"
           >
-            {previewAvatar.current ? (
+            {previewAvatar ? (
               <img
-                src={previewAvatar.current}
+                src={previewAvatar}
                 alt="Avatar"
                 className="w-full h-full object-cover"
               />

@@ -6,12 +6,16 @@
     "type": "module",
     "scripts": {
         "install-server": "cd server && npm install",
-        "start-server": "cd server && node server.js",
+        "start-server": "cd server && nodemon server.js",
         "install-client": "cd client && npm install --legacy-peer-deps",
         "build-client": "cd client && npm run build",
         "start-client": "cd client && npm start"
     },
     "keywords": [],
     "author": "",
-    "license": "ISC"
+    "license": "ISC",
+    "dependencies": {
+        "redux": "^5.0.1",
+        "redux-persist": "^6.0.0"
+    }
 }

@@ -62,7 +62,7 @@ const useLoginFunctionHook = ({
       });
 
       // Store user info and navigate
-      localStorage.setItem("userInfo", JSON.stringify(data));
+      // localStorage.setItem("userInfo", JSON.stringify(data));
       dispatch(setUser(data.data));
       navigate("/chats");
     } catch (error) {

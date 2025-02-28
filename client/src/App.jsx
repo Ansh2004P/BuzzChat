@@ -1,55 +1,47 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import ChatPage from "./pages/ChatPage";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import { Provider } from "react-redux";
+import { Provider, useSelector } from "react-redux";
 import "react-toastify/dist/ReactToastify.css";
-import appStore from "./utils/redux/appStore";
+import appStore, { persistor } from "./utils/redux/appStore";
 import ToastNotification from "./components/ToastNotification";
-import RedirectIfAuthenticated from "./Routes/RedirectRoute/RedirectRoute";
-import ProtectedRoute from "./Routes/protectedRoutes/ProtectedRoute";
-import { useEffect } from "react";
-import useInitHook from "./hooks/useInitHook";
+import { PersistGate } from "redux-persist/integration/react";
 
-function App() {
-  // useInitHook();
+function AppContent() {
+  const selector = useSelector((state) => state.user.user);
+  const userInfo = selector._id === "" ? null : selector;
   return (
-    <Provider store={appStore}>
-      {/* <AuthProvider> */}
+    <>
       <ToastNotification />
       <div className="h-screen w-screen">
-        <div>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route
-              path="/chats"
-              element={
-                <ProtectedRoute>
-                  <ChatPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/login"
-              element={
-                <RedirectIfAuthenticated>
-                  <Login />
-                </RedirectIfAuthenticated>
-              }
-            />
-            <Route
-              path="/signup"
-              element={
-                <RedirectIfAuthenticated>
-                  <Signup />
-                </RedirectIfAuthenticated>
-              }
-            />
-          </Routes>
-        </div>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route
+            path="/chats"
+            element={userInfo ? <ChatPage /> : <Navigate to="/login" replace />}
+          />
+          <Route
+            path="/login"
+            element={userInfo ? <Navigate to="/chats" replace /> : <Login />}
+          />
+          <Route
+            path="/signup"
+            element={userInfo ? <Navigate to="/chats" replace /> : <Signup />}
+          />
+        </Routes>
       </div>
-      {/* </AuthProvider> */}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Provider store={appStore}>
+      <PersistGate loading={null} persistor={persistor}>
+        <AppContent />
+      </PersistGate>
     </Provider>
   );
 }
