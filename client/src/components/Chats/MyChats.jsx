@@ -7,9 +7,8 @@ import PropTypes from "prop-types";
 import { toast } from "react-toastify";
 import useChatState from "../../hooks/useChatState";
 
-
 const MyChats = ({ currUserId }) => {
-  const { chats, setChats, setSearchResult, chatState} = useChatState();
+  const { chats, setChats, setSearchResult, chatState } = useChatState();
 
   const fetchChat = useCallback(async () => {
     console.log("Fetching chats");
@@ -72,7 +71,6 @@ const MyChats = ({ currUserId }) => {
     fetchChat();
   }, []);
 
-  
   // console.log("Chats", chats);
 
   return (

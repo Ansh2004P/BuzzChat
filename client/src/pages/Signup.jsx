@@ -23,16 +23,23 @@ const Signup = () => {
     setErrorMessage,
     avatar,
     previewAvatar,
-    setPreviewAvatar, // pass it here
+    setPreviewAvatar,
     navigate,
     setLoading,
   });
 
+  const onSubmitHandler = (e) => {
+    e.preventDefault();
+    handleButtonClick();
+  };
+
   return (
     <div className="w-full h-full bg-stone-950 bg-opacity-95 absolute flex justify-center items-center text-white">
-      <div className="p-4 my-10 w-[40%] h-fit bg-stone-800 bg-opacity-70 rounded-2xl flex flex-col justify-evenly backdrop-blur-lg shadow-lg shadow-black">
+      <div className="p-6 my-10 w-[40%] min-w-[320px] h-fit bg-stone-800 bg-opacity-70 rounded-2xl flex flex-col justify-evenly backdrop-blur-lg shadow-lg shadow-black">
         <h1 className="text-3xl font-sans font-bold text-center">Sign-Up</h1>
-        <div className="flex justify-center my-4 ">
+
+        {/* Avatar Upload */}
+        <div className="flex justify-center my-4">
           <label
             htmlFor="avatar-input"
             className="cursor-pointer relative w-28 h-28 rounded-full overflow-hidden border-4 border-gray-700"
@@ -47,7 +54,8 @@ const Signup = () => {
               <div className="w-full h-full bg-gray-500 flex justify-center items-center">
                 <img
                   src="https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"
-                  alt="default image"
+                  alt="default avatar"
+                  className="w-auto h-auto object-cover"
                 />
               </div>
             )}
@@ -56,47 +64,65 @@ const Signup = () => {
               type="file"
               accept="image/*"
               className="absolute inset-0 opacity-0 cursor-pointer"
-              onChange={(e) => handleAvatarChange(e.target.files[0])}
+              onChange={(e) =>
+                e.target.files?.[0] && handleAvatarChange(e.target.files[0])
+              }
             />
           </label>
         </div>
 
-        <form onClick={(e) => e.preventDefault()}>
+        {/* Signup Form */}
+        <form onSubmit={onSubmitHandler} className="flex flex-col">
           <input
             ref={name}
             type="text"
+            name="name"
             placeholder="Enter your name"
-            className="p-4 my-4 w-full bg-gray-700 bg-opacity-50 rounded-sm placeholder-white shadow-sm shadow-slate-600 cursor-text"
+            className="p-4 my-3 w-full bg-gray-700 bg-opacity-50 rounded-md placeholder-white shadow-sm shadow-slate-600 cursor-text"
           />
           <input
             ref={email}
-            type="text"
+            type="email"
+            name="email"
             placeholder="Enter your email"
-            className="p-4 my-4 w-full bg-gray-700 bg-opacity-50 rounded-sm placeholder-white shadow-sm shadow-slate-600 cursor-text"
+            className="p-4 my-3 w-full bg-gray-700 bg-opacity-50 rounded-md placeholder-white shadow-sm shadow-slate-600 cursor-text"
           />
           <input
-            required={true}
             ref={password}
             type="password"
-            placeholder="Enter your Password"
-            className="p-4 my-4 w-full bg-gray-700 bg-opacity-50 rounded-sm placeholder-white shadow-sm shadow-slate-600 cursor-text"
+            name="password"
+            required
+            placeholder="Enter your password"
+            className="p-4 my-3 w-full bg-gray-700 bg-opacity-50 rounded-md placeholder-white shadow-sm shadow-slate-600 cursor-text"
           />
-          <p className="text-red-500 font-bold text-lg py-2">{errorMessage}</p>
+
+          {/* Error Message */}
+          {errorMessage && (
+            <p className="text-red-500 font-bold text-lg py-2">
+              {errorMessage}
+            </p>
+          )}
+
           <button
-            onClick={handleButtonClick}
+            type="submit"
             disabled={loading}
-            className="p-4 my-4 bg-emerald-700 text-white w-full rounded-lg cursor-pointer"
+            className={`p-4 my-4 w-full rounded-lg cursor-pointer transition-all duration-200 ${
+              loading
+                ? "bg-emerald-900 cursor-not-allowed"
+                : "bg-emerald-700 hover:bg-emerald-600"
+            } text-white`}
           >
             {loading ? "Loading..." : "Sign-Up"}
           </button>
         </form>
-        <div className="flex">
-          <span>Have account already? </span>
+
+        <div className="flex justify-center mt-2">
+          <span>Have an account already?</span>
           <span
-            className="mx-1 text-blue-600 underline cursor-pointer"
+            className="ml-2 text-blue-500 hover:text-blue-400 underline cursor-pointer"
             onClick={() => navigate("/login")}
           >
-            log-in
+            Log-in
           </span>
         </div>
       </div>

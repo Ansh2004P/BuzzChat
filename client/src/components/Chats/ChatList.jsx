@@ -4,7 +4,6 @@ import useChatState from "../../hooks/useChatState";
 import useAccessChat from "../../hooks/Chat/useAccessChat";
 import useUser from "../../hooks/Chat/useUser";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
 import useGetCurrentUser from "../../hooks/useGetCurrentUser";
 import axios from "axios";
 
@@ -19,11 +18,13 @@ const ChatList = () => {
     setChats,
     searchResult = [],
   } = useChatState();
+
   const {
     data: currentUser,
     isLoading: isUserLoading,
     error: userError,
   } = useUser();
+
   const {
     mutateAsync: accessChat,
     isLoading: isAccessChatLoading,
@@ -40,12 +41,9 @@ const ChatList = () => {
         }
       );
 
-      // console.log(data.data);
-
       const uniqueParticipants = {};
 
       data.data.forEach((element) => {
-        // console.log("element", element);
         if (element.isGroupChat) {
           uniqueParticipants[element._id] = {
             _id: element._id,
@@ -57,8 +55,6 @@ const ChatList = () => {
           };
         } else {
           element.participants.forEach((participant) => {
-            // console.log(element.lastMessage);
-            // console.log("participant single chat", participant);
             if (participant._id !== currentUserId) {
               uniqueParticipants[participant._id] = {
                 ...participant,
@@ -71,10 +67,13 @@ const ChatList = () => {
       });
 
       const uniqueParticipantsArray = Object.values(uniqueParticipants);
-      // console.log(uniqueParticipantsArray);
 
       setChats(uniqueParticipantsArray);
-      setSearchResult(uniqueParticipantsArray);
+
+      // 🛠️ only set searchResult if it's empty (prevents overwriting active search)
+      if (!searchResult.length) {
+        setSearchResult(uniqueParticipantsArray);
+      }
     } catch (error) {
       toast.error("Error fetching chats", {
         position: "bottom-center",
@@ -84,12 +83,13 @@ const ChatList = () => {
         pauseOnHover: false,
       });
     }
-  }, [currentUserId, setChats, setSearchResult]);
+  }, [currentUserId, setChats, setSearchResult, searchResult.length]);
 
-  // console.log(chats);
   useEffect(() => {
     fetchChat();
-  }, [chats]);
+    // run only once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleChatClick = async (chat) => {
     try {
@@ -155,10 +155,8 @@ const ChatList = () => {
           setChats(updatedChats);
         }
 
-        setSearchResult([]);
+        setSearchResult([]); // clear search after selecting group
       }
-
-      // console.log("Updated chats after click:", chats);
     } catch (error) {
       console.error(error);
       toast.error("Error accessing chat", {
@@ -187,15 +185,13 @@ const ChatList = () => {
           ? `${sender.username}: ${lastMessage.content}`
           : lastMessage.content;
 
-        if (content.length > maxLength) {
-          return `${content.substring(0, maxLength - 3)}...`;
-        }
-        return content;
+        return content.length > maxLength
+          ? `${content.substring(0, maxLength - 3)}...`
+          : content;
       } else {
-        if (lastMessage.content.length > maxLength) {
-          return `${lastMessage.content.substring(0, maxLength - 3)}...`;
-        }
-        return lastMessage.content;
+        return lastMessage.content.length > maxLength
+          ? `${lastMessage.content.substring(0, maxLength - 3)}...`
+          : lastMessage.content;
       }
     }
     return "No messages";
