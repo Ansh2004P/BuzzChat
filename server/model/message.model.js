@@ -9,7 +9,7 @@ const chatMessageSchema = new Schema(
         content: {
             type: String,
         },
-        atachment: {
+        attachment: {
             type: [
                 {
                     url: String,

@@ -2,7 +2,6 @@ import { Router } from "express"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
 import { uploadAvatar } from "../middlewares/multer.middleware.js"
 import {
-    CheckRefreshToken,
     deleteAvatar,
     deleteUser,
     getAllUsers,
@@ -17,26 +16,27 @@ import {
 
 const router = Router()
 
-router.route("/").get((_, res) => {
-    res.send("User Route")
-})
-
+// Public routes
 router.route("/register").post(uploadAvatar.single("avatar"), registerUser)
-
-router.route("/get-users").get(verifyJWT, getAllUsers)
-router.route("/check-refresh-token").get(CheckRefreshToken)
 router.route("/login").post(loginUser)
-
-//secured Routes
-router.route("/current-user").get(verifyJWT, getCurrentUser)
-
-router.route("/logout").post(verifyJWT, logoutUser)
 router.route("/refresh-token").post(refreshAccessToken)
-router.route("/update-username").patch(verifyJWT, updateUsername)
-router
-    .route("/update-avatar")
-    .patch(verifyJWT, uploadAvatar.single("avatar"), updateAvatar)
-router.route("/delete-avatar").delete(verifyJWT, deleteAvatar)
-router.route("/delete-user").delete(verifyJWT, deleteUser)
+
+// Protected routes
+router.use(verifyJWT) // Apply JWT middleware to all routes below
+
+// User info routes
+router.route("/current-user").get(getCurrentUser)
+router.route("/users").get(getAllUsers)
+
+// Auth routes
+router.route("/logout").post(logoutUser)
+
+// Profile update routes
+router.route("/update-username").patch(updateUsername)
+router.route("/update-avatar").patch(uploadAvatar.single("avatar"), updateAvatar)
+router.route("/delete-avatar").delete(deleteAvatar)
+
+// Account management
+router.route("/delete-account").delete(deleteUser)
 
 export default router
