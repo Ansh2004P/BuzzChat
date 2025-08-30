@@ -2,7 +2,7 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import ChatPage from "./pages/ChatPage";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
-import Signup from "./Pages/Signup";
+import Signup from "./pages/Signup";
 import { Provider, useSelector } from "react-redux";
 import "react-toastify/dist/ReactToastify.css";
 import appStore, { persistor } from "./utils/redux/appStore";
