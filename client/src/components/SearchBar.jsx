@@ -1,16 +1,14 @@
 import React, { useRef, useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
 import { useSearchUsers } from "../hooks/queries/chatQueries";
-import { useDispatch } from "react-redux";
-import { setSearchResult, setSearching } from "../utils/redux/chatSlice";
 import { debounce } from "../utils/utils";
 
 const SearchBar = React.memo(function SearchBar({
   onSearchResult,
   initialResult,
+  onSearchStateChange,
 }) {
   const searchRef = useRef("");
-  const dispatch = useDispatch();
   const searchUsersMutation = useSearchUsers();
 
   // Function to filter existing chats locally
@@ -30,12 +28,18 @@ const SearchBar = React.memo(function SearchBar({
       
       if (!trimmedQuery) {
         // Reset to initial results when query is empty
-        dispatch(setSearching(false));
-        dispatch(setSearchResult(initialResult));
+        if (onSearchStateChange) {
+          onSearchStateChange(false);
+        }
+        if (onSearchResult) {
+          onSearchResult(initialResult);
+        }
         return;
       }
 
-      dispatch(setSearching(true));
+      if (onSearchStateChange) {
+        onSearchStateChange(true);
+      }
       
       // First, filter existing chats locally
       const filteredChats = filterLocalChats(trimmedQuery, initialResult);
@@ -63,15 +67,19 @@ const SearchBar = React.memo(function SearchBar({
         );
         
         const combinedResults = [...filteredChats, ...newUsers];
-        dispatch(setSearchResult(combinedResults));
+        if (onSearchResult) {
+          onSearchResult(combinedResults);
+        }
         
       } catch (error) {
         console.error("Search failed:", error);
         // On error, just show filtered local chats
-        dispatch(setSearchResult(filteredChats));
+        if (onSearchResult) {
+          onSearchResult(filteredChats);
+        }
       }
     }, 300),
-    [searchUsersMutation, dispatch, initialResult, filterLocalChats]
+    [searchUsersMutation, initialResult, filterLocalChats, onSearchResult, onSearchStateChange]
   );
 
   const handleSearch = useCallback(
@@ -90,14 +98,18 @@ const SearchBar = React.memo(function SearchBar({
       
       if (currentValue === "") {
         // Reset to initial results when input is cleared
-        dispatch(setSearching(false));
-        dispatch(setSearchResult([]));
+        if (onSearchStateChange) {
+          onSearchStateChange(false);
+        }
+        if (onSearchResult) {
+          onSearchResult(initialResult);
+        }
       } else {
         // Trigger debounced search for real-time results
         debouncedSearch(currentValue);
       }
     },
-    [dispatch, initialResult, debouncedSearch]
+    [onSearchResult, onSearchStateChange, initialResult, debouncedSearch]
   );
 
   return (
@@ -123,6 +135,7 @@ const SearchBar = React.memo(function SearchBar({
 SearchBar.propTypes = {
   onSearchResult: PropTypes.func.isRequired,
   initialResult: PropTypes.array.isRequired,
+  onSearchStateChange: PropTypes.func,
 };
 
 export default SearchBar;

@@ -9,7 +9,7 @@ import Loader from "../Loader";
 
 const MyChats = ({ currUserId }) => {
   const { data: chatsData, isLoading, error } = useChats();
-  const { setChats, setSearchResult, searchResult } = useChatState();
+  const { setChats, setSearchResult } = useChatState();
   const [isSearching, setIsSearching] = React.useState(false);
 
   // Memoize the processed chats to avoid unnecessary recalculations
@@ -56,19 +56,22 @@ const MyChats = ({ currUserId }) => {
 
   // Update Redux state when processed chats change
   React.useEffect(() => {
-    if (processedChats.length > 0) {
-      setChats(processedChats);
-      // Only set search result if not currently searching
-      if (!isSearching) {
-        setSearchResult(processedChats);
-      }
+    // Always update chats, even if empty (to handle cases like all chats being deleted)
+    setChats(processedChats);
+    // Only update search results to match current chats when not actively searching
+    if (!isSearching) {
+      setSearchResult(processedChats);
     }
   }, [processedChats, setChats, setSearchResult, isSearching]);
 
   // Handle search state changes
   const handleSearchStateChange = React.useCallback((searching) => {
     setIsSearching(searching);
-  }, []);
+    // If search is turned off, reset to show all chats
+    if (!searching) {
+      setSearchResult(processedChats);
+    }
+  }, [processedChats, setSearchResult]);
 
   const handleSearchResult = React.useCallback((results) => {
     setSearchResult(results);
@@ -97,7 +100,6 @@ const MyChats = ({ currUserId }) => {
       </div>
     );
   }
-  console.log()
 
   return (
     <div className="bg-neutral-800 rounded-2xl w-[30%] h-[100%] p-2 ml-4 text-white flex flex-col">
