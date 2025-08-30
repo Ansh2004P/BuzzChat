@@ -1,9 +1,13 @@
 import axios from "axios";
 import React, { useEffect } from "react";
-
+import { useDispatch } from "react-redux";
+import { setSelectedChat } from "../utils/redux/chatSlice";
 
 const useInitHook = () => {
+  const dispatch = useDispatch();
+
   useEffect(() => {
+    dispatch(setSelectedChat(null));
     axios
       .get(`${import.meta.env.VITE_SERVER_URI}/user/check-refresh-token`, {
         withCredentials: true,

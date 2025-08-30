@@ -7,17 +7,18 @@ import useAccessChat from "../../hooks/Chat/useAccessChat";
 import { toast } from "react-toastify";
 
 const ChatList = () => {
-  const { data: currentUser, isLoading: isUserLoading, error: userError } = useUser();
-  const { selectedChat, setSelectedChat, chats: reduxChats, searchResult, isSearching } = useChatState();
+  const { isLoading: isUserLoading, error: userError } = useUser();
+  const { selectedChat, setSelectedChat, isSearching } = useChatState();
   const { mutateAsync: accessChat, error: accessChatError } = useAccessChat();
 
   // Redux selector: compute display list
   const displayList = useSelector((state) => {
-    return state.chat.isSearching && state.chat.searchResult.length > 0
-      ? state.chat.searchResult
-      : state.chat.chats;
+    // If we're searching, always show search results (even if empty)
+    // If not searching, show chats
+    return state.chat.isSearching ? state.chat.searchResult : state.chat.chats;
   });
 
+  const searchRes = useSelector((state) => state.chat.searchResult);
   const handleChatClick = async (chat) => {
     try {
       if (chat.isGroupChat) {
@@ -35,7 +36,10 @@ const ChatList = () => {
 
       let selectedChatData;
       if (chat.isSearchResult || !chat.chatId) {
-        const chatData = await accessChat({ userId: chat._id, isGroupChat: false });
+        const chatData = await accessChat({
+          userId: chat._id,
+          isGroupChat: false,
+        });
         selectedChatData = {
           _id: chat._id,
           chatId: chatData._id,
@@ -62,11 +66,14 @@ const ChatList = () => {
       setSelectedChat(selectedChatData);
     } catch (error) {
       console.error("Error accessing chat:", error);
-      toast.error("Failed to open chat", { position: "bottom-center", theme: "dark" });
+      toast.error("Failed to open chat", {
+        position: "bottom-center",
+        theme: "dark",
+      });
     }
   };
 
-  console.log("a", displayList)
+  console.log("a", displayList);
 
   const renderLastMessage = (chat) => {
     const lastMessage = chat.lastMessage?.[0];
@@ -76,11 +83,15 @@ const ChatList = () => {
     let content = lastMessage.content;
 
     if (chat.isGroupChat) {
-      const sender = chat.participants.find((p) => p._id === lastMessage.sender);
+      const sender = chat.participants.find(
+        (p) => p._id === lastMessage.sender
+      );
       if (sender) content = `${sender.username}: ${lastMessage.content}`;
     }
 
-    return content.length > maxLength ? `${content.substring(0, maxLength - 3)}...` : content;
+    return content.length > maxLength
+      ? `${content.substring(0, maxLength - 3)}...`
+      : content;
   };
 
   if (isUserLoading) return <p>Loading user...</p>;
@@ -88,10 +99,14 @@ const ChatList = () => {
 
   return (
     <div className="flex flex-col py-3 my-2 w-full h-full rounded-lg overflow-hidden">
-      {accessChatError && <p>Error accessing chat: {accessChatError.message}</p>}
+      {accessChatError && (
+        <p>Error accessing chat: {accessChatError.message}</p>
+      )}
 
       {!accessChatError && displayList.length === 0 && (
-        <p className="text-center text-gray-400">No chats available</p>
+        <p className="text-center text-gray-400">
+          {isSearching ? "No search results found" : "No chats available"}
+        </p>
       )}
 
       {!accessChatError && displayList.length > 0 && (
@@ -101,7 +116,9 @@ const ChatList = () => {
               key={chat._id}
               onClick={() => handleChatClick(chat)}
               className={`cursor-pointer py-4 px-4 mx-1 my-2 rounded-lg w-[28vw] h-fit ${
-                selectedChat?._id === chat._id ? "bg-neutral-500 text-white" : "bg-neutral-700 text-white"
+                selectedChat?._id === chat._id
+                  ? "bg-neutral-500 text-white"
+                  : "bg-neutral-700 text-white"
               } hover:bg-neutral-400 hover:text-white`}
             >
               <div className="flex justify-between">
