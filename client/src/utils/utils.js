@@ -10,6 +10,49 @@ export const extractErrorMessage = (html) => {
   return match ? match[1] : null;
 };
 
+// Debounce utility function for search optimization
+export const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func.apply(null, args), delay);
+  };
+};
+
+// Local Storage utility with error handling
+export const LocalStorage = {
+  get: (key) => {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : null;
+    } catch (error) {
+      console.error(`Error getting item from localStorage:`, error);
+      return null;
+    }
+  },
+  set: (key, value) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.error(`Error setting item in localStorage:`, error);
+    }
+  },
+  remove: (key) => {
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.error(`Error removing item from localStorage:`, error);
+    }
+  },
+  clear: () => {
+    try {
+      localStorage.clear();
+    } catch (error) {
+      console.error(`Error clearing localStorage:`, error);
+    }
+  },
+};
+
 // timestampFormatter.js
 
 export function formatTimestamp(isoTimestamp) {

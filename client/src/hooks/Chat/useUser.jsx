@@ -1,16 +1,18 @@
 // hooks/useUser.js
-import { useQuery } from "react-query";
-import axios from "axios";
-
-const fetchUser = async (userId) => {
-  const { data } = await axios.get(`/api/user/${userId}`);
-  return data;
-};
+import { useQuery } from "@tanstack/react-query";
+import { userAPI } from "../../services/api";
 
 const useUser = (userId) => {
-  return useQuery(["user", userId], () => fetchUser(userId), {
-    staleTime: 1000 * 60 * 5, // Cache data for 5 minutes
-    cacheTime: 1000 * 60 * 10, // Keep unused data in cache for 10 minutes
+  return useQuery({
+    queryKey: ["user", userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const { data } = await userAPI.getCurrentUser();
+      return data.data;
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // Cache data for 5 minutes
+    cacheTime: 10 * 60 * 1000, // Keep unused data in cache for 10 minutes
   });
 };
 

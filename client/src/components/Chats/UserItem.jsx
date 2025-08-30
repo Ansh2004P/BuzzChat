@@ -9,13 +9,23 @@ export const UserItem = ({ user, isAdmin, onRemoveUser, dropdownContent }) => {
 
   const handleRightClick = (event) => {
     event.preventDefault();
-    setDropdownPosition({ x: event.pageX / 4, y: 30 });
-    setShowDropdown(true);
+    console.log("Right click detected on user:", user.username);
+    console.log("onRemoveUser:", onRemoveUser);
+    console.log("dropdownContent:", dropdownContent);
+    
+    // Only show dropdown if both onRemoveUser and dropdownContent are provided
+    if (onRemoveUser && dropdownContent) {
+      console.log("Showing dropdown");
+      setDropdownPosition({ x: event.pageX / 4, y: 30 });
+      setShowDropdown(true);
+    } else {
+      console.log("Not showing dropdown - missing onRemoveUser or dropdownContent");
+    }
   };
 
   const handleRemoveUser = () => {
     if (onRemoveUser) {
-      onRemoveUser(user);
+      onRemoveUser(); // Don't pass user parameter since it's already bound in the callback
     }
     setShowDropdown(false); // Close the dropdown after removing the user
   };
@@ -27,7 +37,9 @@ export const UserItem = ({ user, isAdmin, onRemoveUser, dropdownContent }) => {
   return (
     <div className="relative">
       <div
-        className="flex items-center justify-between my-2 py-2 px-1 bg-neutral-600 rounded-xl hover:bg-neutral-800"
+        className={`flex items-center justify-between my-2 py-2 px-1 bg-neutral-600 rounded-xl hover:bg-neutral-800 ${
+          onRemoveUser && dropdownContent ? 'cursor-context-menu' : ''
+        }`}
         onContextMenu={handleRightClick}
       >
         <div className="flex items-center">
@@ -43,7 +55,7 @@ export const UserItem = ({ user, isAdmin, onRemoveUser, dropdownContent }) => {
         )}
       </div>
 
-      {showDropdown && (
+      {showDropdown && onRemoveUser && dropdownContent && (
         <div
           className="absolute bg-neutral-500  shadow-lg rounded-md z-10 py-1 text-sm text-black border-neutral-600 border-2"
           style={{ top: dropdownPosition.y, left: dropdownPosition.x }}
@@ -75,7 +87,7 @@ export const withAdminLabel = (Component) => {
       user: PropTypes.object.isRequired,
       chat: PropTypes.object.isRequired,
     };
-    const isAdmin = chat.admin.some((adminId) => adminId === user._id);
+    const isAdmin = chat?.admin ? chat.admin.some((admin) => admin._id === user._id) : false;
     return <Component {...props} user={user} isAdmin={isAdmin} />;
   };
 

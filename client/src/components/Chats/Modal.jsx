@@ -1,25 +1,31 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import { CrossButton } from "../userProfile/CrossButton";
 import Participants from "./Participants";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { extractErrorMessage } from "../../utils/utils";
 
 import useSearchUser from "../../hooks/useSearchUser";
 import { setgroupSearchResult } from "../../utils/redux/groupSearchSlice";
 import { useDispatch, useSelector } from "react-redux";
-import useChatState from "../../hooks/useChatState";
-import { addChat, setChats } from "../../utils/redux/chatSlice";
+import { addChat } from "../../utils/redux/chatSlice";
+import { useCreateGroupChat } from "../../hooks/queries/chatQueries";
 
 const Modal = ({ onClose }) => {
-  const groupName = useRef("");
+  const chatName = useRef("");
   const dispatch = useDispatch();
   const [previewAvatar, setPreviewAvatar] = useState(null); // Use state for avatar preview
   const [avatar, setAvatar] = useState(null); // Use state for avatar
   const [participants, setParticipants] = useState(new Map());
-  const [reqSend, setReqSend] = useState(false);
-  const chats = useSelector((state) => state.chat.chats);
+
+  // TanStack Query mutation for creating group chat
+  const createGroupChatMutation = useCreateGroupChat();
+
+  const handleClose = useCallback(() => {
+    if (onClose) {
+      onClose(); // Call the onClose callback function if provided
+    }
+  }, [onClose]);
 
   useEffect(() => {
     const handleEscape = (event) => {
@@ -30,13 +36,7 @@ const Modal = ({ onClose }) => {
 
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, []);
-
-  const handleClose = () => {
-    if (onClose) {
-      onClose(); // Call the onClose callback function if provided
-    }
-  };
+  }, [handleClose]);
 
   const searchUser = useRef("");
   const prevValue = useRef("");
@@ -76,7 +76,7 @@ const Modal = ({ onClose }) => {
   };
 
   const handleSubmit = async () => {
-    if (!groupName.current.value.trim()) {
+    if (!chatName.current.value.trim()) {
       toast.error("Please enter a group name");
       return;
     }
@@ -89,8 +89,6 @@ const Modal = ({ onClose }) => {
       return;
     }
 
-    setReqSend(true);
-
     const participantsArray = Array.from(participants.entries()).map(
       ([id, details]) => ({
         _id: id,
@@ -101,28 +99,20 @@ const Modal = ({ onClose }) => {
 
     const formData = new FormData();
     formData.append("avatar", avatar);
-    formData.append("groupName", groupName.current.value.trim());
+    formData.append("chatName", chatName.current.value.trim());
     formData.append("participants", JSON.stringify(participantsArray));
 
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_URI}/chat/group`,
-        formData,
-        { withCredentials: true }
-      );
-
-      // Instead of using setChats with a concatenation of a possibly stale chats value,
-      // dispatch the new group using addChat action.
-      dispatch(addChat(response.data.data));
-      handleClose();
-
-      toast.success("Group created successfully");
-    } catch (error) {
-      const errorMessage = extractErrorMessage(error.response?.data || error);
-      toast.error(errorMessage);
-    } finally {
-      setReqSend(false);
-    }
+    createGroupChatMutation.mutate(formData, {
+      onSuccess: (response) => {
+        // Add the new chat to Redux state for immediate UI update
+        dispatch(addChat(response.data.data));
+        handleClose();
+      },
+      onError: (error) => {
+        const errorMessage = extractErrorMessage(error.response?.data || error);
+        toast.error(errorMessage);
+      },
+    });
   };
 
   return (
@@ -170,7 +160,7 @@ const Modal = ({ onClose }) => {
 
         <div className="relative w-full my-6">
           <input
-            ref={groupName}
+            ref={chatName}
             type="text"
             autoFocus
             placeholder=" Group name (required)"
@@ -207,9 +197,10 @@ const Modal = ({ onClose }) => {
           <hr className="h-px my-2 bg-gray-200 border-0 dark:bg-neutral-600" />
           <button
             onClick={handleSubmit}
-            className="w-[92%] h-fit p-3 my-2 mx-2 rounded-lg bg-emerald-600 hover:bg-emerald-700"
+            disabled={createGroupChatMutation.isPending}
+            className="w-[92%] h-fit p-3 my-2 mx-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {reqSend ? "Creating Group..." : "Create Group"}
+            {createGroupChatMutation.isPending ? "Creating Group..." : "Create Group"}
           </button>
         </div>
       </div>

@@ -7,6 +7,7 @@ import {
   addChat,
   removeChat,
   setSearchResult,
+  setSearching,
   updateLastMessage,
 } from "../utils/redux/chatSlice";
 
@@ -25,6 +26,7 @@ const useChatState = () => {
     },
     removeChat: (chatId) => dispatch(removeChat(chatId)),
     setSearchResult: (searchResult) => dispatch(setSearchResult(searchResult)),
+    setSearching: (isSearching) => dispatch(setSearching(isSearching)),
     updateLastMessage: (chatId, newLastMessage) =>
       dispatch(updateLastMessage({ chatId, newLastMessage })),
   };

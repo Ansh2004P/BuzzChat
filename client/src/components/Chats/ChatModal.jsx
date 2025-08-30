@@ -4,12 +4,17 @@ import PropTypes from "prop-types";
 import ChatInfo from "./ChatInfo";
 import useChatState from "../../hooks/useChatState";
 
-const ChatModal = ({ onclose, currUser }) => {
+const ChatModal = ({ onclose, currUser, selectedChatUser }) => {
   const { selectedChat } = useChatState();
   const [zoom, setZoom] = React.useState(false);
 
-  const mid = selectedChat.user;
-  const user = { ...mid };
+  // Use the passed selectedChatUser or fallback to selectedChat.user
+  const user = selectedChatUser || selectedChat?.user;
+  
+  // Handle different data structures
+  const chatUser = Array.isArray(user) 
+    ? user.find(u => u._id !== currUser._id) || user[0]
+    : user;
 
   const handleClose = () => {
     if (onclose) {
@@ -35,11 +40,7 @@ const ChatModal = ({ onclose, currUser }) => {
           onClick={handleZoom}
         >
           <img
-            src={
-              user?.[0]?._id === currUser._id
-                ? user[1]?.avatar
-                : user[0]?.avatar
-            }
+            src={chatUser?.avatar}
             alt="avatar"
             className="rounded-full w-[70vw] h-[70vh] object-cover"
           />
@@ -56,11 +57,7 @@ const ChatModal = ({ onclose, currUser }) => {
           <div className="rounded-full mt-2 w-[30%] h-[140px]">
             <div className="rounded-full w-[140px] h-[140px]">
               <img
-                src={
-                  user?.[0]?._id === currUser._id
-                    ? user[1]?.avatar
-                    : user[0]?.avatar
-                }
+                src={chatUser?.avatar}
                 alt="avatar"
                 className="rounded-full w-full h-full object-cover p-2"
               />
@@ -86,9 +83,9 @@ const ChatModal = ({ onclose, currUser }) => {
             </div>
           </div>
           <span className="h-20vh w-[60%] text-white text-lg font-thin p-4 m-6">
-            <b>Username: </b> {" " + user[0].username}
+            <b>Username: </b> {chatUser?.username || "Unknown"}
             <br />
-            <b>Email: </b> {" " + user[0].email}
+            <b>Email: </b> {chatUser?.email || "Not provided"}
           </span>
         </div>
       </div>
@@ -99,6 +96,7 @@ const ChatModal = ({ onclose, currUser }) => {
 ChatModal.propTypes = {
   onclose: PropTypes.func,
   currUser: PropTypes.object,
+  selectedChatUser: PropTypes.object,
 };
 
 export default ChatModal;

@@ -1,11 +1,14 @@
-import React from "react";
+import React, { Suspense } from "react";
 import ChatIcon from "../../utils/icons/ChatIcon";
 import useChatState from "../../hooks/useChatState";
-import SingleChat from "./SingleChat";
+import Loader from "../Loader";
+import ErrorBoundary from "../ErrorBoundary";
 
-const ChatWindow = () => {
+// Lazy load SingleChat for better performance
+const SingleChat = React.lazy(() => import("./SingleChatOptimized"));
+
+const ChatWindow = React.memo(() => {
   const { selectedChat } = useChatState();
-  // console.log(selectedChat._id);
 
   if (!selectedChat) {
     return (
@@ -23,11 +26,22 @@ const ChatWindow = () => {
       </div>
     );
   }
+
   return (
-    <>
-      <SingleChat />
-    </>
+    <ErrorBoundary>
+      <Suspense 
+        fallback={
+          <div className="rounded-2xl mx-4 bg-neutral-800 w-[67%] h-[100%] flex items-center justify-center">
+            <Loader />
+          </div>
+        }
+      >
+        <SingleChat />
+      </Suspense>
+    </ErrorBoundary>
   );
-};
+});
+
+ChatWindow.displayName = 'ChatWindow';
 
 export default ChatWindow;

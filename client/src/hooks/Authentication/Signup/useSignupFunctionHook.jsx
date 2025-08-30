@@ -17,32 +17,49 @@ const useSignupFunctionHook = ({
 }) => {
   const handleButtonClick = async () => {
     setLoading(true);
+    setErrorMessage(null); // Clear previous errors
+    
     try {
-      if (!name.current.value || !email.current.value) {
-        setErrorMessage("Both name and email cannot be empty");
+      // Validate name
+      if (!name.current.value.trim()) {
+        setErrorMessage("Name is required");
+        setLoading(false);
+        return;
+      }
+      
+      if (name.current.value.trim().length < 2) {
+        setErrorMessage("Name must be at least 2 characters long");
+        setLoading(false);
+        return;
+      }
+
+      // Validate email
+      if (!email.current.value.trim()) {
+        setErrorMessage("Email is required");
+        setLoading(false);
+        return;
+      }
+
+      // Validate password
+      if (!password.current.value) {
+        setErrorMessage("Password is required");
         setLoading(false);
         return;
       }
 
       const check = checkValidData(email.current.value, password.current.value);
-      setErrorMessage(check);
       if (check) {
+        setErrorMessage(check);
         setLoading(false);
         return;
       }
 
-      if (!avatar.current)
-        return toast.error("Please select avatar", {
-          position: "bottom-center",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-          progress: undefined,
-          theme: "dark",
-          transition: Bounce,
-        });
+      // Validate avatar
+      if (!avatar.current) {
+        setErrorMessage("Please select an avatar image");
+        setLoading(false);
+        return;
+      }
 
       const formData = new FormData();
       formData.append("username", name.current.value);
@@ -61,22 +78,8 @@ const useSignupFunctionHook = ({
         formData,
         config
       );
-      // console.log(data);
-      toast({
-        title: data.message,
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-        position: "bottom",
-      });
-
-      setLoading(false);
-      navigate("/login");
-    } catch (error) {
-      setLoading(false);
-      // console.log(error);
-      const errorMessage = extractErrorMessage(error.response.data);
-      toast.error(errorMessage, {
+      
+      toast.success(data.message || "Account created successfully!", {
         position: "bottom-center",
         autoClose: 5000,
         hideProgressBar: false,
@@ -84,7 +87,30 @@ const useSignupFunctionHook = ({
         pauseOnHover: false,
         draggable: true,
         theme: "dark",
+        transition: Bounce,
       });
+
+      setLoading(false);
+      navigate("/login");
+    } catch (error) {
+      setLoading(false);
+      console.error("Signup error:", error);
+      
+      let errorMessage = "Something went wrong. Please try again.";
+      
+      if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        } else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response.data.error) {
+          errorMessage = error.response.data.error;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setErrorMessage(errorMessage);
     }
   };
 

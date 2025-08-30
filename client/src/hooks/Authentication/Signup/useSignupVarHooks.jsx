@@ -11,6 +11,13 @@ const useSignupVarHooks = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Function to clear error when user starts typing
+  const clearError = () => {
+    if (errorMessage) {
+      setErrorMessage(null);
+    }
+  };
+
   return {
     navigate,
     name,
@@ -23,6 +30,7 @@ const useSignupVarHooks = () => {
     setPreviewAvatar, // make sure to return this
     loading,
     setLoading,
+    clearError,
   };
 };
 

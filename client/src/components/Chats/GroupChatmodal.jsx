@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { PencilIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { CrossButton } from "../userProfile/CrossButton";
@@ -12,10 +11,24 @@ import {
   addParticipant,
   clearSearchResult,
   setParticipants,
+  removeParticipant,
 } from "../../utils/redux/groupSearchSlice";
 import useChatState from "../../hooks/useChatState";
-import { removeChat } from "../../utils/redux/chatSlice";
+import { 
+  removeChat, 
+  removeChatParticipant,
+  addChatParticipant,
+  updateChatName,
+  updateChatAvatar,
+} from "../../utils/redux/chatSlice";
 import useGroupAddParticipant from "../../hooks/Chat/useGroupAddParticipant";
+import {
+  useRemoveParticipant,
+  useAddParticipant,
+  useLeaveGroup,
+  useRenameGroup,
+  useUpdateGroupAvatar,
+} from "../../hooks/queries/chatQueries";
 
 // Wrap UserItem with withAdminLabel
 const UserItemWithAdmin = withAdminLabel(UserItem);
@@ -23,18 +36,28 @@ const UserItemWithAdmin = withAdminLabel(UserItem);
 const GroupChatModal = ({ onClose }) => {
   const chat = useSelector((state) => state.chat.selectedChat);
   const [zoom, setZoom] = useState(false);
-  const [avatar, setAvatar] = useState(chat.avatar);
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(chat.chatName);
-  const [tempName, setTempName] = useState(name);
-  const [users, setUsers] = useState(chat.users);
+  const [tempName, setTempName] = useState(chat?.chatName || "");
   const [searchOn, setSearchOn] = useState(false);
   const searchUser = useRef("");
   const currentUser = useSelector((state) => state.user.user);
-  const isAdmin = chat.admin.includes(currentUser._id);
+  const isAdmin = chat?.admin && currentUser?._id ? 
+    chat.admin.some(admin => admin._id === currentUser._id) : false;
   const { setSelectedChat } = useChatState();
   const dispatch = useDispatch();
+
+  // Get participants from Redux state (selectedChat)
+  const users = chat?.participants || chat?.users || [];
+
+  // TanStack Query mutations
+  const removeParticipantMutation = useRemoveParticipant();
+  const addParticipantMutation = useAddParticipant();
+  const leaveGroupMutation = useLeaveGroup();
+  const renameGroupMutation = useRenameGroup();
+  const updateAvatarMutation = useUpdateGroupAvatar();
+
   // console.log(chat);
+
   const searchResult = useSelector(
     (state) => state.groupSearch.groupSearchResult
   );
@@ -54,14 +77,17 @@ const GroupChatModal = ({ onClose }) => {
   );
 
   useEffect(() => {
-    dispatch(setParticipants([...users]));
-  }, [users, dispatch]);
+    const chatUsers = chat?.participants || chat?.users || [];
+    dispatch(setParticipants([...chatUsers]));
+    // Update tempName when chat changes
+    setTempName(chat?.chatName || "");
+  }, [chat, dispatch]);
 
   const handleEditClick = () => setIsEditing(true);
 
   const sortedUsers = [...participants].sort((a, b) => {
-    const isAAdmin = chat.admin.includes(a._id);
-    const isBAdmin = chat.admin.includes(b._id);
+    const isAAdmin = chat?.admin ? chat.admin.some(admin => admin._id === a._id) : false;
+    const isBAdmin = chat?.admin ? chat.admin.some(admin => admin._id === b._id) : false;
     return isBAdmin - isAAdmin; // Admins first
   });
 
@@ -73,34 +99,23 @@ const GroupChatModal = ({ onClose }) => {
       });
       return;
     }
-    try {
-      const response = await axios.put(
-        `${import.meta.env.VITE_SERVER_URI}/chat/rename`,
-        { chatName: tempName, chatId: chat._id },
-        { withCredentials: true }
-      );
 
-      toast.success(response.data.message, {
-        position: "bottom-center",
-        autoClose: 5000,
-      });
-
-      setName(tempName);
-      setIsEditing(false);
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || "Error occurred";
-      toast.error(errorMessage, {
-        position: "bottom-center",
-        autoClose: 5000,
-      });
-    }
+    renameGroupMutation.mutate(
+      { chatId: chat._id, chatName: tempName },
+      {
+        onSuccess: () => {
+          dispatch(updateChatName({ chatId: chat._id, chatName: tempName }));
+          setIsEditing(false);
+        },
+      }
+    );
   };
 
   const handleInputChange = (event) => setTempName(event.target.value);
 
   const handleBlur = () => {
     setIsEditing(false);
-    setTempName(name); // Reset tempName if editing is cancelled
+    setTempName(chat?.chatName || ""); // Reset tempName if editing is cancelled
   };
 
   const handleKeyDown = (event) => {
@@ -119,126 +134,63 @@ const GroupChatModal = ({ onClose }) => {
 
     const formData = new FormData();
     formData.append("avatar", file);
-    formData.append("chatId", chat._id);
 
-    try {
-      const response = await axios.put(
-        `${import.meta.env.VITE_SERVER_URI}/chat/update-avatar`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          withCredentials: true,
-        }
-      );
-
-      setAvatar(response.data.avatarUrl);
-      toast.success(response.data.message, {
-        position: "bottom-center",
-        autoClose: 5000,
-      });
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || "Error occurred";
-      toast.error(errorMessage, {
-        position: "bottom-center",
-        autoClose: 5000,
-      });
-    }
+    updateAvatarMutation.mutate(
+      { chatId: chat._id, formData },
+      {
+        onSuccess: (response) => {
+          dispatch(updateChatAvatar({ chatId: chat._id, avatar: response.data.avatarUrl }));
+        },
+      }
+    );
   };
 
-  const handleRemoveUser = async (userId, chatId) => {
-    try {
-      const { data } = await axios.put(
-        `${import.meta.env.VITE_SERVER_URI}/chat/groupRemove`,
-        { userId, chatId },
-        { withCredentials: true }
-      );
-
-      // console.log(data);
-
-      toast.success(data.message, {
-        position: "bottom-center",
-        autoClose: 5000,
-      });
-
-      const removedUserId = data.data.removedUser._id;
-      // console.log("Chats", chat);
-
-      // Filter the chats
-      const filteredUsers = chat.users.filter(
-        (user) => user._id !== removedUserId
-      );
-
-      // Update the selected chat with the filtered users
-      const updatedChat = {
-        ...chat,
-        users: filteredUsers,
-      };
-
-      setSelectedChat(updatedChat);
-      // Update the users state to reflect the removed user
-      setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
-    } catch (error) {
-      // console.log(error);
-      const errorMessage = error.response?.data?.message || "Error occurred";
-      toast.error(errorMessage, {
-        position: "bottom-center",
-        autoClose: 5000,
-      });
-    }
+  const handleRemoveUser = (userId, chatId) => {
+    removeParticipantMutation.mutate(
+      { userId, chatId },
+      {
+        onSuccess: () => {
+          // Update Redux state - remove the user
+          dispatch(removeChatParticipant({ chatId, userId }));
+          dispatch(removeParticipant(userId));
+        },
+      }
+    );
   };
 
-  const handleAddUser = async (userId, chatId) => {
-    try {
-      const { data } = await axios.put(
-        `${import.meta.env.VITE_SERVER_URI}/chat/groupAdd`,
-        { userId, chatId },
-        { withCredentials: true }
-      );
-      toast.success(data.message, {
-        position: "bottom-center",
-        autoClose: 5000,
-      });
-
-      // Find the newly added user from search results
-      const addedUser = searchResult.find((user) => user._id === userId);
-      setSelectedChat({ ...chat, users: data.data.participants });
-      dispatch(addParticipant(addedUser));
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Error occurred", {
-        position: "bottom-center",
-        autoClose: 5000,
-      });
-    }
+  const handleAddUser = (userId, chatId) => {
+    addParticipantMutation.mutate(
+      { userId, chatId },
+      {
+        onSuccess: () => {
+          // Find the newly added user from search results
+          const addedUser = searchResult.find((user) => user._id === userId);
+          
+          // Update Redux state
+          dispatch(addChatParticipant({ chatId, user: addedUser }));
+          dispatch(addParticipant(addedUser));
+        },
+      }
+    );
   };
 
-  const handleLeaveGroup = async (chatId) => {
-    // console.log(chatId);
-    try {
-      const { data } = await axios.put(
-        `${import.meta.env.VITE_SERVER_URI}/chat/leaveGroup`,
-        { chatId },
-        { withCredentials: true }
-      );
-      // console.log(data);
-      removeChat(chat._id);
-      setSelectedChat(null);
-      toast.success(data.message, {
-        position: "bottom-center",
-        autoClose: 5000,
-      });
-
-      onClose();
-    } catch (error) {
-      // console.log(error);
-      const errorMessage = error.response?.data?.message || "Error occurred";
-      toast.error(errorMessage, {
-        position: "bottom-center",
-        autoClose: 5000,
-      });
-    }
+  const handleLeaveGroup = (chatId) => {
+    leaveGroupMutation.mutate(
+      chatId,
+      {
+        onSuccess: () => {
+          dispatch(removeChat(chat._id));
+          setSelectedChat(null);
+          onClose();
+        },
+      }
+    );
   };
+
+  // Early return if chat is not loaded or required properties are missing
+  if (!chat || (!chat.participants && !chat.users)) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
@@ -252,7 +204,7 @@ const GroupChatModal = ({ onClose }) => {
           onClick={handleZoom}
         >
           <img
-            src={avatar}
+            src={chat?.avatar}
             alt="avatar"
             className="rounded-full w-[70vw] h-[70vh] object-cover"
           />
@@ -269,7 +221,7 @@ const GroupChatModal = ({ onClose }) => {
           <div className="flex justify-around items-center">
             <div className="relative mx-4 w-[30%]">
               <img
-                src={avatar}
+                src={chat?.avatar}
                 alt="avatar"
                 className="rounded-full w-[140px] h-[140px] object-cover cursor-pointer"
                 onClick={handleZoom}
@@ -288,7 +240,7 @@ const GroupChatModal = ({ onClose }) => {
             <div className="ml-6 w-[50%] flex flex-col">
               {!isEditing ? (
                 <div className="flex items-center">
-                  <span className="text-lg font-semibold">{name}</span>
+                  <span className="text-lg font-semibold">{chat?.chatName}</span>
                   <button
                     onClick={handleEditClick}
                     className="ml-4 p-1 text-white hover:bg-neutral-800"
@@ -366,6 +318,11 @@ const GroupChatModal = ({ onClose }) => {
 
         {!searchOn && (
           <div className="flex flex-col mt-4">
+            {isAdmin && (
+              <p className="text-gray-400 text-xs mb-2 text-center">
+                Right-click on members to remove them (admins cannot be removed)
+              </p>
+            )}
             <Scrollbars
               autoHide
               autoHideTimeout={1000}
@@ -373,15 +330,23 @@ const GroupChatModal = ({ onClose }) => {
               style={{ height: "300px" }}
             >
               {sortedUsers.length > 0 ? (
-                sortedUsers.map((user) => (
-                  <UserItemWithAdmin
-                    key={user._id}
-                    user={user}
-                    chat={chat}
-                    onRemoveUser={() => handleRemoveUser(user._id, chat._id)}
-                    dropdownContent={"Remove from group"}
-                  />
-                ))
+                sortedUsers.map((user) => {
+                  const canRemoveUser = isAdmin && 
+                    user._id !== currentUser._id && // Cannot remove self
+                    (!chat?.admin || !chat.admin.some(admin => admin._id === user._id)); // Cannot remove other admins
+                  
+                  console.log(`User: ${user.username}, canRemoveUser: ${canRemoveUser}, isAdmin: ${isAdmin}, isSelf: ${user._id === currentUser._id}, isUserAdmin: ${chat?.admin ? chat.admin.some(admin => admin._id === user._id) : false}`);
+                  
+                  return (
+                    <UserItemWithAdmin
+                      key={user._id}
+                      user={user}
+                      chat={chat}
+                      onRemoveUser={canRemoveUser ? () => handleRemoveUser(user._id, chat._id) : null}
+                      dropdownContent={canRemoveUser ? "Remove from group" : null}
+                    />
+                  );
+                })
               ) : (
                 <p className="text-gray-500">No users in the group.</p>
               )}

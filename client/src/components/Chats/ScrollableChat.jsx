@@ -22,7 +22,7 @@ const Message = React.memo(function Message({ message, id, groupChat }) {
     <div
       className={`flex ${
         message.sender._id === id ? "flex-row-reverse" : "flex-row"
-      } items-start space-x-2 my-2`}
+      } items-start space-x-2 my-2 ${message.isTemporary ? 'opacity-70' : ''}`}
     >
       {message.sender._id !== id && groupChat && (
         <div className="mr-2">
@@ -38,7 +38,9 @@ const Message = React.memo(function Message({ message, id, groupChat }) {
           message.sender._id === id
             ? "bg-emerald-700 text-white rounded-l-lg rounded-br-lg mr-2"
             : "bg-neutral-700 text-white rounded-b-lg rounded-t-lg"
-        } ${message.sender._id === id ? "ml-2" : "mr-2"}`}
+        } ${message.sender._id === id ? "ml-2" : "mr-2"} ${
+          message.isTemporary ? 'border border-dashed border-emerald-400' : ''
+        }`}
       >
         {message.sender._id !== id && groupChat && (
           <span
@@ -48,9 +50,14 @@ const Message = React.memo(function Message({ message, id, groupChat }) {
             {message.sender.username}
           </span>
         )}
-        <span className="flex text-left -mx-1 font-normal text-sm text-white my-1">
-          {message.content}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="flex text-left -mx-1 font-normal text-sm text-white my-1">
+            {message.content}
+          </span>
+          {message.isTemporary && (
+            <div className="animate-spin rounded-full h-3 w-3 border-b-1 border-white opacity-50"></div>
+          )}
+        </div>
         {message.sender._id === id ? (
           <>
             <div className="absolute top-0 right-[-8px] h-[12px] w-[20px] bg-emerald-700" />
